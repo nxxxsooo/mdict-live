@@ -1,4 +1,7 @@
-content/
+# Ignore all subdirectories in content/source (dictionaries)
+content/source/*/
+
+
 __pycache__/
 *.pyc
 .DS_Store
