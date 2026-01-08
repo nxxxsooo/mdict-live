@@ -1,6 +1,8 @@
 # Flask-MDict Docker Image
 
-A Dockerized version of [flask-mdict](https://github.com/liuyug/flask-mdict), a web-based MDict dictionary viewer.
+A Dockerized version of [flask-mdict](https://github.com/liuyug/flask-mdict) with significant improvements for modern deployment.
+- **GitHub Repository**: [nxxxsooo/docker-flask-mdict](https://github.com/nxxxsooo/docker-flask-mdict)
+- **DockerHub**: [tardivo/flask-mdict](https://hub.docker.com/r/tardivo/flask-mdict)
 
 ## Features
 
@@ -72,11 +74,17 @@ To build the image locally with your own modifications:
 2.  Uncomment `build: .` in `docker-compose.yml`.
 3.  Run `docker-compose up -d --build`.
 
-## Recent Changes
--   **Lean Image**: Dictionaries are NOT baked in; you must mount them to `/app/content`.
--   **No Plugins**: Translator plugins are removed for a smaller footprint.
--   **Security**: Default bind address is `0.0.0.0` (Docker friendly).
--   **Fixes**: Includes fixes for MDX decoding errors.
+## Improvements & Changes in this Fork
+
+This version includes several critical fixes and enhancements not present in the original:
+
+1.  **Reverse Proxy Support**: Added `ProxyFix` middleware to correctly handle `X-Forwarded-Proto` headers. Sites behind Nginx/Traefik will now load CSS/assets correctly via HTTPS.
+2.  **LZO Compression Support**: Fixed issues with identifying and handling LZO-compressed MDX files.
+3.  **Modernized Build**:
+    -   Reduced image size by removing broken/unused translator plugins.
+    -   Bind address set to `0.0.0.0` by default for Docker compatibility.
+    -   Fixed `AttributeError: 'bytes' object has no attribute 'decode'` in MDX decoding logic.
+4.  **Dictionary Tools**: Includes `tools/organize_dicts.py` to help bulk-rename and organize your dictionary library.
 
 ## Unraid
 
