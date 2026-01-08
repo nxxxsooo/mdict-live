@@ -23,7 +23,7 @@
   <Icon>https://raw.githubusercontent.com/liuyug/flask-mdict/master/logo.png</Icon>
   <Config Name="Web UI Port" Target="5248" Default="5248" Mode="tcp" Description="The port for the web interface." Type="Port" Display="always" Required="true" Mask="false">5248</Config>
   <Config Name="Dictionary Library" Target="/app/content" Default="/mnt/user/appdata/flask-mdict/library" Mode="rw" Description="Directory containing .mdx and .mdd dictionary files." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/flask-mdict/library</Config>
-  <Config Name="Configuration" Target="/config" Default="/mnt/user/appdata/flask-mdict/config" Mode="rw" Description="Directory for flask_mdict.json configuration file." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/flask-mdict/config</Config>
+  <Config Name="Configuration" Target="/config" Default="/mnt/user/appdata/flask-mdict" Mode="rw" Description="Directory for flask_mdict.json configuration file." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/flask-mdict</Config>
   <Config Name="Run Command" Target="COMMAND" Default="" Mode="" Description="Override default command to use the external config file" Type="Variable" Display="advanced" Required="false" Mask="false">python app.py --config-file /config/flask_mdict.json</Config>
   <!-- 
     Note: Unraid doesn't natively support overriding the ENTRYPOINT/CMD easily via the GUI variables for every base image style, 
