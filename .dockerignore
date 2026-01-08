@@ -1,0 +1,18 @@
+# Exclude large data directory by default
+content/
+sound/
+
+# Exclude git metadata
+.git
+.github
+.gitignore
+
+# Exclude temp files
+__pycache__/
+*.pyc
+.DS_Store
+.idea/
+.vscode/
+flask_mdict.db
+flask_mdict_wfd.db
+my-flask-mdict.xml

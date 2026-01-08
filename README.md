@@ -46,3 +46,21 @@ The application will be available at `http://localhost:5248`.
 - Dictionaries & Database (`flask_mdict.db`) are stored in `./library`.
 - Configuration (`flask_mdict.json`) is stored in `./config`.
 
+## Building Locally with Docker Compose
+
+If you want to build the image yourself (e.g., to include modifications):
+
+1.  **Edit `docker-compose.yml`**:
+    Uncomment the `build: .` line:
+    ```yaml
+    services:
+      flask-mdict:
+        build: .
+        # image: ... (optional: comment out image to force checking local build)
+    ```
+2.  **Build and Run**:
+    ```bash
+    docker-compose up -d --build
+    ```
+
+

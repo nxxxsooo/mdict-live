@@ -2,6 +2,8 @@ version: '3.8'
 
 services:
   flask-mdict:
+    # To build locally, uncomment the following line:
+    # build: .
     image: tardivo/flask-mdict:latest
     container_name: flask-mdict
     restart: unless-stopped
