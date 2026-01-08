@@ -10,7 +10,8 @@ RUN rm -f flask_mdict/plugins/[!__]*.py
 
 # Remove 'translators' from requirements.txt to prevent installation
 RUN sed -i '/translators/d' requirements.txt
-
+# Install build dependencies for python-lzo
+RUN apk add --no-cache lzo-dev build-base
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 

@@ -4,3 +4,4 @@ Flask
 Flask-WTF
 WTForms-Components
 translators
+python-lzo
