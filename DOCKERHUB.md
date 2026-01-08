@@ -45,6 +45,19 @@ services:
     command: ["python", "app.py", "--config-file", "/config/flask_mdict.json"]
 ```
 
+## Running Locally (Docker Compose)
+
+To build the image locally with your own modifications:
+
+1.  Clone the repository.
+2.  Uncomment `build: .` in `docker-compose.yml`.
+3.  Run `docker-compose up -d --build`.
+
+## Recent Changes
+-   **No Plugins**: Translator plugins are removed for a leaner image.
+-   **Security**: Default bind address is `0.0.0.0` (Docker friendly).
+-   **Fixes**: Includes fixes for MDX decoding errors.
+
 ## Unraid
 
 An XML template is available in the GitHub repository (`flask-mdict.xml`) for easy installation on Unraid.
