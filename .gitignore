@@ -1,6 +1,4 @@
 content/
-sound/
-config-unraid/
 __pycache__/
 *.pyc
 .DS_Store

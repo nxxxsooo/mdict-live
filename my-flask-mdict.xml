@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>flask-mdict</Name>
+  <Repository>tardivo/flask-mdict</Repository>
+  <Registry>https://hub.docker.com/r/tardivo/flask-mdict</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/nxxxsooo/docker-flask-mdict/issues</Support>
+  <Project>https://github.com/liuyug/flask-mdict</Project>
+  <Overview>Flask-MDict is a web-based MDict dictionary viewer. It supports parsing .mdx and .mdd files and provides a clean, responsive web interface.&#xD;
+&#xD;
+Features:&#xD;
+- Supports MDict dictionaries (.mdx/.mdd)&#xD;
+- Word frequency database support&#xD;
+- Web-based interface accessible from any browser&#xD;
+- Persistent configuration and library storage</Overview>
+  <Category>Productivity: Tools:Utilities</Category>
+  <WebUI>http://[IP]:[PORT:5248]/</WebUI>
+  <Icon>https://raw.githubusercontent.com/nxxxsooo/docker-flask-mdict/main/logo.png</Icon>
+  <Config Name="Web UI Port" Target="5248" Default="5248" Mode="tcp" Description="The port for the web interface." Type="Port" Display="always" Required="true" Mask="false">5248</Config>
+  <Config Name="Dictionary Library" Target="/app/content" Default="/mnt/user/appdata/flask-mdict/library" Mode="rw" Description="Directory containing .mdx and .mdd dictionary files." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/flask-mdict/library</Config>
+  <Config Name="Configuration" Target="/config" Default="/mnt/user/appdata/flask-mdict" Mode="rw" Description="Directory for flask_mdict.json configuration file." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/flask-mdict</Config>
+  <Config Name="Run Command" Target="COMMAND" Default="" Mode="" Description="Override default command to use the external config file" Type="Variable" Display="advanced" Required="false" Mask="false">python app.py --config-file /config/flask_mdict.json</Config>
+</Container>
