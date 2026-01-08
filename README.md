@@ -18,6 +18,18 @@ The workflow is defined in `.github/workflows/build.yml`.
 5. Supports multi-architecture builds (`linux/amd64`, `linux/arm64`).
 
 
+## Improvements & Changes in this Fork
+
+This version includes several critical fixes and enhancements not present in the original:
+
+1.  **Native LZO Compression**: Added full support for LZO-compressed MDX/MDD files by compiling `python-lzo` and installing system dependencies in the image. Resolves errors with "unknown compression method" for many older or Chinese dictionaries.
+2.  **Reverse Proxy Support**: Added `ProxyFix` middleware to correctly handle `X-Forwarded-Proto` headers. Sites behind Nginx/Traefik will now load CSS/assets correctly via HTTPS.
+3.  **Modernized Build**:
+    -   Reduced image size by removing broken/unused translator plugins.
+    -   Bind address set to `0.0.0.0` by default for Docker compatibility.
+    -   Fixed `AttributeError: 'bytes' object has no attribute 'decode'` in MDX decoding logic.
+4.  **Dictionary Tools**: Includes `tools/organize_dicts.py` to help bulk-rename and organize your dictionary library.
+
 ## Configuration
 
 To use this workflow, ensuring the following **Secrets** are set in your repository (or Environment):
