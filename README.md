@@ -60,37 +60,42 @@ To use this workflow, ensuring the following **Secrets** are set in your reposit
 
 > **Note:** If you are using GitHub Environments to protect these secrets, ensure the `environment` key is set correctly in `build.yml`.
 
-## Usage with Docker Compose
+## Deployment Options
 
-To run the application with persistent configuration and dictionary files, use the included `docker-compose.yml`.
+### Option 1: Deploy from Docker Hub (Recommended)
+Best for most users. Uses the pre-built, lean image from Docker Hub.
 
-1.  **Create Directories:**
-    ```bash
-    mkdir library config
-    ```
-2.  **Add Dictionaries:** Put your `.mdx` and `.mdd` files into the `library` folder.
-3.  **Add Config:** Create/copy your `flask_mdict.json` into the `config` folder.
-    *   *Tip: You can extract the default config from the image first if needed.*
-4.  **Run:**
-    ```bash
-    docker-compose up -d
-    ```
-
-The application will be available at `http://localhost:5248`.
-- Dictionaries & Database (`flask_mdict.db`) are stored in `./library`.
-- Configuration (`flask_mdict.json`) is stored in `./config`.
-
-## Building Locally with Docker Compose
-
-If you want to build the image yourself (e.g., to include modifications):
-
-1.  **Edit `docker-compose.yml`**:
-    Uncomment the `build: .` line:
+**Using Docker Compose:**
+1.  Create `docker-compose.yml`:
     ```yaml
+    version: '3.8'
     services:
       flask-mdict:
-        build: .
-        # image: ... (optional: comment out image to force checking local build)
+        image: tardivo/flask-mdict:latest
+        restart: always
+        ports:
+          - "5248:5248"
+        volumes:
+          - ./library:/app/content
+          - ./config:/config
+    ```
+2.  Run: `docker-compose up -d`
+
+**Using Docker CLI:**
+See the [Cross-Platform Commands](#running-cross-platform) section below.
+
+### Option 2: Build from Source (Self-Build)
+Best if you want to modify source code or bake dictionaries into the image.
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/nxxxsooo/docker-flask-mdict.git
+    cd docker-flask-mdict
+    ```
+2.  **Configure:** Uncomment `build: .` in `docker-compose.yml`.
+3.  **Build & Run:**
+    ```bash
+    docker-compose up -d --build
     ```
 2.  **Build and Run**:
     ```bash
