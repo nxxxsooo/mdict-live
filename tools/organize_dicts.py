@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 import re
 
 import re
@@ -66,6 +67,33 @@ def organize_dictionaries(base_dir):
                     title = mdx.header.get(b'Title', b'').decode('utf-8', errors='ignore').strip()
                 except Exception as e:
                     print(f"Error reading metadata from {filename}: {e}")
+                    # Move to _unsupported
+                    unsupported_dir = os.path.join(base_dir, '_unsupported')
+                    os.makedirs(unsupported_dir, exist_ok=True)
+                    
+                    print(f"Moving unsupported/error file {filename} to {unsupported_dir}")
+                    
+                    # Move the MDX file
+                    try:
+                        shutil.move(mdx_path, os.path.join(unsupported_dir, filename))
+                    except Exception as move_error:
+                         print(f"Error moving {filename}: {move_error}")
+
+                    # Move related files
+                    base_origin = os.path.splitext(filename)[0]
+                    for f in os.listdir(root):
+                        if f == filename: continue
+                        if f.startswith(base_origin):
+                             suffix = f[len(base_origin):]
+                             if suffix.startswith('.') or suffix == '':
+                                 old_file = os.path.join(root, f)
+                                 # Checking if it still exists (it might have been moved if we are not careful, but loop should be safe)
+                                 if os.path.exists(old_file):
+                                     print(f"  Moving Related: '{f}'")
+                                     try:
+                                        shutil.move(old_file, os.path.join(unsupported_dir, f))
+                                     except Exception as move_error:
+                                        print(f"Error moving related file {f}: {move_error}")
                     continue
 
                 if not title:
