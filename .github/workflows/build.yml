@@ -44,3 +44,12 @@ jobs:
           push: true
           tags: tardivo/flask-mdict:latest
           platforms: linux/amd64,linux/arm64 # Multi-arch support
+
+      # 5. Update Docker Hub Description
+      - name: Update Docker Hub Description
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: tardivo/flask-mdict
+          readme-filepath: ./DOCKERHUB.md
