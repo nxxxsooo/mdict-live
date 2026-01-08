@@ -10,3 +10,6 @@ __pycache__/
 .vscode/
 flask_mdict.db
 flask_mdict.json
+node_modules/
+flask-mdict/flask_mdict/static/css/main.css
+flask-mdict/flask_mdict/static/src/
