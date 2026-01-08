@@ -1,6 +1,9 @@
 # Ignore all subdirectories in content/source (dictionaries)
 content/source/*/
 
+sound/
+
+
 
 __pycache__/
 *.pyc
