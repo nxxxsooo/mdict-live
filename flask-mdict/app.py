@@ -93,13 +93,13 @@ def cli():
 
     if 'server' not in config_data:
         config_data['server'] = {}
-        config_data['server']['ip'] = '127.0.0.1'
+        config_data['server']['ip'] = '0.0.0.0'
         config_data['server']['port'] = '5248'
         config_data['server']['debug'] = False
         config_data['server']['threaded'] = True
         config_data['server']['process'] = 1
 
-    ip = config_data['server'].get('ip', '127.0.0.1')
+    ip = config_data['server'].get('ip', '0.0.0.0')
     port = config_data['server'].get('port', '5248')
     debug = config_data['server'].get('debug', False)
     threaded = config_data['server'].get('threaded', True)
