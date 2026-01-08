@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>flask-mdict</Name>
+  <Repository>nxxxsooo/docker-flask-mdict</Repository>
+  <Registry>https://hub.docker.com/r/nxxxsooo/docker-flask-mdict</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/nxxxsooo/docker-flask-mdict/issues</Support>
+  <Project>https://github.com/liuyug/flask-mdict</Project>
+  <Overview>
+    Flask-MDict is a web-based MDict dictionary viewer. It supports parsing .mdx and .mdd files and provides a clean, responsive web interface.&#xD;
+    &#xD;
+    **Features:**&#xD;
+    - Supports MDict dictionaries (.mdx/.mdd)&#xD;
+    - Word frequency database support&#xD;
+    - Web-based interface accessible from any browser&#xD;
+    - Persistent configuration and library storage&#xD;
+  </Overview>
+  <Category>Tools:Utilities Productivity:</Category>
+  <WebUI>http://[IP]:[PORT:5248]/</WebUI>
+  <Icon>https://raw.githubusercontent.com/liuyug/flask-mdict/master/logo.png</Icon>
+  <Config Name="Web UI Port" Target="5248" Default="5248" Mode="tcp" Description="The port for the web interface." Type="Port" Display="always" Required="true" Mask="false">5248</Config>
+  <Config Name="Dictionary Library" Target="/app/content" Default="/mnt/user/appdata/flask-mdict/library" Mode="rw" Description="Directory containing .mdx and .mdd dictionary files." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/flask-mdict/library</Config>
+  <Config Name="Configuration" Target="/config" Default="/mnt/user/appdata/flask-mdict/config" Mode="rw" Description="Directory for flask_mdict.json configuration file." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/flask-mdict/config</Config>
+  <Config Name="Run Command" Target="COMMAND" Default="" Mode="" Description="Override default command to use the external config file" Type="Variable" Display="advanced" Required="false" Mask="false">python app.py --config-file /config/flask_mdict.json</Config>
+  <!-- 
+    Note: Unraid doesn't natively support overriding the ENTRYPOINT/CMD easily via the GUI variables for every base image style, 
+    but for this specific image, we handle the config file argument in the image or via the PostArgs if needed.
+    However, the XML <PostArgs> or just relying on the default CMD and instructing user to use the specific start command is tricky.
+    
+    Actually, for Unraid XML, "PostArgs" is often used for arguments passed to the entrypoint. 
+    Since the Dockerfile likely has an ENTRYPOINT or CMD, we'll try to set the PostArgs to match our docker-compose command overrides if possible,
+    OR we can rely on the user mapping the config file to the default location if the app supports it. 
+    
+    Based on previous steps, we decided to override CMD: ["python", "app.py", "--config-file", "/config/flask_mdict.json"]
+    In Unraid XML, you can use <PostArgs> to pass arguments if the entrypoint is python app.py.
+    However, since we can't easily change the command structure in XML without "ExtraParameters", 
+    we will stick to mapping the volumes.
+  -->
+</Container>
