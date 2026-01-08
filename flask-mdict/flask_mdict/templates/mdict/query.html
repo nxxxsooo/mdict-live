@@ -8,128 +8,101 @@
 
 {% block subtitle %}{{word}} - {{config.APP_NAME}}{% endblock %}
 
+{# Sidebar: Dictionary List & History #}
+{% block sidebar %}
+    <h6 class="menu-title">从以下词典查找 (Dictionaries)</h6>
+    {% for uuid, item in contents.items() %}
+    <li>
+        <div class="form-control p-0 items-start">
+            <label class="label cursor-pointer justify-start gap-2 w-full">
+                <input type="checkbox" name="mdict_enable" value="{{uuid}}" class="checkbox checkbox-xs" {{'checked' if item.enable}}/>
+                <span class="label-text truncate max-w-[180px] text-xs" title="{{item.title|safe}}">{{item.title|safe}}</span>
+            </label>
+        </div>
+    </li>
+    {% endfor %}
+
+    <div class="divider"></div>
+    <div class="flex justify-between items-center px-4">
+        <h6 class="menu-title p-0">历史 (History)</h6>
+        <a href="{{url_for('.export_history')}}" class="link link-primary text-xs">导出</a>
+    </div>
+    {%for row in history%}
+    <li>
+        <a href="{{url_for('.query_word_all', word=row.word)}}" class="flex justify-between">
+            {{row.word}}
+            <span class="badge badge-sm">{{row.count}}</span>
+        </a>
+    </li>
+    {%endfor%}
+{% endblock %}
+
+{# Navigation / Search Bar #}
 {% block navmenu %}
-    <form method="POST" action="{{url_for('.query_word_all')}}" class="col">
-        <div class="input-group">
-            {{ form.word(placeholder='word', class='form-control', autocomplete='off') }}
-            <div class="input-group-append">
-                <button id="btn-search" type="submit" class="btn btn-outline-info" style="z-index:1;">
-                    <i class="fas fa-search"></i>
-                </button>
+    <form method="POST" action="{{url_for('.query_word_all')}}" class="mb-6">
+        <div class="join w-full">
+            <div class="flex-1">
+                 {{ form.word(placeholder='Search word...', class='input input-bordered join-item w-full', autocomplete='off') }}
             </div>
+            <button id="btn-search" type="submit" class="btn btn-primary join-item">
+                <i class="fas fa-search"></i> Search
+            </button>
         </div>
         {{ form.csrf_token }}
     </form>
-
 {% endblock %}
 
+{# Main Content: Definitions #}
 {% block maincontent %}
-    <div class="modal fade" id="message" tabindex="-1" role="dialog" aria-labelledby="message_body" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div id="message_body" class="modal-body">
-                    {{message}}
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-            </div>
+    <!-- Message Modal (Using DaisyUI) -->
+    <dialog id="message_modal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">Message</h3>
+        <p class="py-4">{{message}}</p>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn">Close</button>
+          </form>
         </div>
-    </div>
-<div class="row">
-    <div class="col-sm-3">
-        <div>
-            <div class="anchor-fix"> </div>
-            <h6>从以下词典查找：</h6>
-            <div class="mdict-list">
-            <ul class="list-group">
-                {% for uuid, item in contents.items() %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div class="form-check">
-                        <input type="checkbox" name="mdict_enable" value="{{uuid}}" class="form-check-input" {{'checked' if item.enable}}/>
-                        <label class="form-check-label">
-                            <a href="#{{uuid}}">{{item.title|safe}}</a>
-                            <small data-toggle="modal" data-target="#about_{{uuid}}">
-                                <i class="fas fa-info-circle"></i>
-                            </small>
-                        </label>
-                    </div>
-                    <!-- Modal -->
-                    <div class="modal" id="about_{{uuid}}" role="dialog" data-backdrop="false">
-                        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">
-                                        <img class="rounded align-text-bottom"
-                                             height="24px"
-                                             src="{{url_for('.query_resource', uuid=uuid, resource=item.logo)}}"/>
-                                        {{item.title|safe}}</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    {{item.about|safe}}
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                </div>
+      </div>
+    </dialog>
+
+    <div class="flex flex-col gap-6">
+        {% for uuid, item in contents.items() if item.content %}
+            <div id="{{uuid}}" class="target:pt-20"> <!-- Anchor fix -->
+                <div class="card bg-base-100 shadow-lg border border-base-200">
+                    <div class="card-body p-4" id="class_{{uuid}}">
+                        <div class="flex justify-between items-center mb-2 border-b pb-2">
+                             <h2 class="card-title text-lg">
+                                <img class="rounded w-5 h-5" src="{{url_for('.query_resource', uuid=uuid, resource=item.logo)}}"/>
+                                <span class="truncate">{{item.title|safe}}</span>
+                            </h2>
+                            <div class="flex gap-2 text-sm">
+                                {%if item.content%}<span class="badge badge-ghost">{{word_meta|safe}}</span>{%endif%}
+                                <a href="{{url_for('.query_word', uuid=uuid, word=word)}}" target="_blank" class="btn btn-ghost btn-xs" title="Open in new tab">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
                             </div>
                         </div>
-                    </div>
-                </li>
-                {% endfor %}
-            </ul>
-            </div>
-            <div id="export-history" class="float-right">
-                <a href="{{url_for('.export_history')}}">导出</a>
-            </div>
-            <h6>历史：</h6>
-            <div class="history-list">
-                <ul class="list-group">
-                    {%for row in history%}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <a href="{{url_for('.query_word_all', word=row.word)}}">{{row.word}}</a>
-                            <span class="badge badge-primary badge-pill">{{row.count}}</span>
-                        </li>
-                    {%endfor%}
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <div class="col">
-        {% for uuid, item in contents.items() if item.content %}
-            <div id="{{uuid}}" class="anchor-fix"> </div>
-            <div class="card">
-                <div class="card-body py-0" id="class_{{uuid}}">
-                    <div class="d-flex flex-row-reverse">
-                        <div>
-                            {%if item.content%}<small>{{word_meta|safe}}</small>{%endif%}
-                            <a style="text-decoration:none;"
-                               target="_blank"
-                               href="{{url_for('.query_word', uuid=uuid, word=word)}}">
-                                <img class="rounded align-text-bottom"
-                                     height="16px"
-                                     src="{{url_for('.query_resource', uuid=uuid, resource=item.logo)}}"/>
-                            </a>
-                            <button class="btn btn-link btn-sm p-0"
-                                    data-toggle="collapse"
-                                    data-target="#collapse_{{uuid}}">
-                                {{item.title|safe}}
-                            </button>
-                        </div>
-                    </div>
-                    <div id="collapse_{{uuid}}" class="collapse{%if item.content%} show{%endif%}">
-                        <div class="mdict">
+                        
+                        <div class="mdict overflow-x-auto">
+                            <!-- Mdict Content -->
                             {{item.content|safe}}
                         </div>
                     </div>
                 </div>
             </div>
+        {% else %}
+             <div class="hero bg-base-200 rounded-box p-10">
+                <div class="hero-content text-center">
+                    <div class="max-w-md">
+                    <h1 class="text-3xl font-bold">Search for a word</h1>
+                    <p class="py-6">Select dictionaries from the sidebar and type a word above to begin.</p>
+                    </div>
+                </div>
+            </div>
         {% endfor %}
     </div>
-</div>
 {% endblock %}
 {% block script %}
 {{super()}}
@@ -137,7 +110,7 @@
 <script src="{{url_for(".static", filename="js/typeahead.bundle.min.js")}}"></script>
 <script type="text/javascript">
     if ("{{message}}") {
-        $('#message').modal('show');
+        document.getElementById('message_modal').showModal();
     }
 /* typeahead */
 var dataset_engine = new Bloodhound({
