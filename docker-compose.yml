@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  flask-mdict:
+    image: nxxxsooo/docker-flask-mdict:latest
+    container_name: flask-mdict
+    restart: unless-stopped
+    ports:
+      - "5248:5248"
+    volumes:
+      # Map dictionaries and database (flask_mdict.db)
+      - ./library:/app/content
+      
+      # Map configuration folder
+      - ./config:/config
+    
+    # Override command to use the config file in the mapped folder
+    command: ["python", "app.py", "--config-file", "/config/flask_mdict.json"]

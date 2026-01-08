@@ -25,3 +25,24 @@ To use this workflow, ensuring the following **Secrets** are set in your reposit
 - `DOCKERHUB_TOKEN`: Your Docker Hub Access Token.
 
 > **Note:** If you are using GitHub Environments to protect these secrets, ensure the `environment` key is set correctly in `build.yml`.
+
+## Usage with Docker Compose
+
+To run the application with persistent configuration and dictionary files, use the included `docker-compose.yml`.
+
+1.  **Create Directories:**
+    ```bash
+    mkdir library config
+    ```
+2.  **Add Dictionaries:** Put your `.mdx` and `.mdd` files into the `library` folder.
+3.  **Add Config:** Create/copy your `flask_mdict.json` into the `config` folder.
+    *   *Tip: You can extract the default config from the image first if needed.*
+4.  **Run:**
+    ```bash
+    docker-compose up -d
+    ```
+
+The application will be available at `http://localhost:5248`.
+- Dictionaries & Database (`flask_mdict.db`) are stored in `./library`.
+- Configuration (`flask_mdict.json`) is stored in `./config`.
+
