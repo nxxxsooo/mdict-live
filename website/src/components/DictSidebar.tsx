@@ -73,6 +73,29 @@ export function DictSidebar() {
   }, [])
 
   const realDicts = dicts.filter((d) => d.type !== 'app')
+  const enabledDicts = realDicts.filter((d) => d.enabled)
+
+  const NavItem = ({
+    icon: Icon,
+    label,
+    tab,
+  }: {
+    icon: typeof BookOpen
+    label: string
+    tab: typeof activeTab
+  }) => (
+    <button
+      onClick={() => setActiveTab(tab)}
+      className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors ${
+        activeTab === tab
+          ? 'text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/20'
+          : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800'
+      }`}
+    >
+      <Icon size={20} />
+      <span className="text-[10px] font-medium">{label}</span>
+    </button>
+  )
 
   return (
     <>
@@ -90,42 +113,16 @@ export function DictSidebar() {
         }`}
         style={{ width: `${sidebarWidth}px` }}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-800">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setActiveTab('dicts')}
-              className={`flex items-center gap-2 pb-1 border-b-2 transition-colors ${
-                activeTab === 'dicts'
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
-              }`}
-            >
-              <BookOpen size={18} />
-              <span className="font-semibold text-sm">Dicts</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`flex items-center gap-2 pb-1 border-b-2 transition-colors ${
-                activeTab === 'history'
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
-              }`}
-            >
-              <History size={18} />
-              <span className="font-semibold text-sm">History</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('wordbook')}
-              className={`flex items-center gap-2 pb-1 border-b-2 transition-colors ${
-                activeTab === 'wordbook'
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
-              }`}
-            >
-              <Bookmark size={18} />
-              <span className="font-semibold text-sm">Wordbook</span>
-            </button>
-          </div>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-800 h-[57px]">
+          <span className="font-semibold text-sm dark:text-slate-200">
+            {activeTab === 'dicts'
+              ? 'Dictionaries'
+              : activeTab === 'wordbook'
+              ? selectedWbId === null
+                ? 'Wordbooks'
+                : 'Wordbook'
+              : 'History'}
+          </span>
           <button
             className="lg:hidden p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-800 dark:text-slate-400"
             onClick={() => setSidebarOpen(false)}
@@ -143,7 +140,7 @@ export function DictSidebar() {
                   setActiveDict('all')
                   setSidebarOpen(false)
                 }}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors mb-2 ${
                   activeDict === 'all'
                     ? 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/30 dark:text-blue-400'
                     : 'text-gray-600 hover:bg-gray-50 dark:text-slate-400 dark:hover:bg-slate-800'
@@ -153,10 +150,8 @@ export function DictSidebar() {
                 All Dictionaries
               </button>
 
-              <div className="my-2 border-t border-gray-100 dark:border-slate-800" />
-
-              {realDicts.map((dict) => (
-                <div key={dict.uuid} className="flex items-center group">
+              {enabledDicts.map((dict) => (
+                <div key={dict.uuid} className="flex items-center group mb-0.5">
                   <button
                     onClick={() => {
                       setActiveDict(dict.uuid)
@@ -166,7 +161,7 @@ export function DictSidebar() {
                       activeDict === dict.uuid
                         ? 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/30 dark:text-blue-400'
                         : 'text-gray-600 hover:bg-gray-50 dark:text-slate-400 dark:hover:bg-slate-800'
-                    } ${!dict.enabled ? 'opacity-40' : ''}`}
+                    }`}
                   >
                     <img
                       src={dict.logo}
@@ -176,22 +171,13 @@ export function DictSidebar() {
                     />
                     <span className="truncate">{dict.title}</span>
                   </button>
-                  {/* Toggle switch */}
-                  <button
-                    onClick={() => toggleDict.mutate(dict.uuid)}
-                    className={`flex-shrink-0 mr-2 w-8 h-4 rounded-full transition-colors relative ${
-                      dict.enabled ? 'bg-blue-500' : 'bg-gray-300 dark:bg-slate-700'
-                    }`}
-                    title={dict.enabled ? 'Disable' : 'Enable'}
-                  >
-                    <span
-                      className={`absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${
-                        dict.enabled ? 'translate-x-4' : 'translate-x-0.5'
-                      }`}
-                    />
-                  </button>
                 </div>
               ))}
+              {enabledDicts.length === 0 && (
+                <div className="text-center py-8 text-sm text-gray-400 dark:text-slate-600 px-4">
+                  No dictionaries enabled. Go to Settings to manage dictionaries.
+                </div>
+              )}
             </>
           ) : activeTab === 'history' ? (
             <div className="space-y-1">
@@ -315,14 +301,11 @@ export function DictSidebar() {
           )}
         </nav>
 
-        <div className="px-4 py-2 text-xs text-gray-400 border-t border-gray-100 dark:border-slate-800">
-          {activeTab === 'dicts'
-            ? `${realDicts.length} dictionaries`
-            : activeTab === 'history'
-            ? `${history.length} history items`
-            : selectedWbId === null
-            ? `${wordbooks.length} wordbooks`
-            : `${wbEntries.length} words`}
+        {/* Bottom Navigation */}
+        <div className="flex border-t border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+          <NavItem icon={BookOpen} label="Dicts" tab="dicts" />
+          <NavItem icon={Bookmark} label="Wordbook" tab="wordbook" />
+          <NavItem icon={History} label="History" tab="history" />
         </div>
 
         {/* Resize handle — desktop only */}
