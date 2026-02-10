@@ -1,6 +1,16 @@
-import { useCallback, useRef } from 'react'
-import { BookOpen, X, History, Trash2 } from 'lucide-react'
-import { useDicts, useToggleDict, useHistory, useClearHistory } from '@/hooks/useDict'
+import { useCallback, useRef, useState } from 'react'
+import { BookOpen, X, History, Trash2, Bookmark, Plus, ArrowLeft, MoreVertical } from 'lucide-react'
+import {
+  useDicts,
+  useToggleDict,
+  useHistory,
+  useClearHistory,
+  useWordbooks,
+  useWordbookEntries,
+  useCreateWordbook,
+  useDeleteWordbook,
+  useDeleteWordbookEntry,
+} from '@/hooks/useDict'
 import { useAppStore } from '@/stores/useAppStore'
 
 export function DictSidebar() {
@@ -8,6 +18,14 @@ export function DictSidebar() {
   const toggleDict = useToggleDict()
   const { data: history = [] } = useHistory()
   const clearHistory = useClearHistory()
+
+  const { data: wordbooks = [] } = useWordbooks()
+  const createWordbook = useCreateWordbook()
+  const deleteWordbook = useDeleteWordbook()
+  const deleteEntry = useDeleteWordbookEntry()
+
+  const [selectedWbId, setSelectedWbId] = useState<number | null>(null)
+  const { data: wbEntries = [] } = useWordbookEntries(selectedWbId || 0)
 
   const activeDict = useAppStore((s) => s.activeDict)
   const setActiveDict = useAppStore((s) => s.setActiveDict)
@@ -20,6 +38,16 @@ export function DictSidebar() {
   const setSearchWord = useAppStore((s) => s.setSearchWord)
 
   const isDragging = useRef(false)
+
+  const handleCreateWordbook = () => {
+    const name = prompt('Enter wordbook name:')
+    if (name) createWordbook.mutate(name)
+  }
+
+  const handleDeleteWordbook = (e: React.MouseEvent, id: number) => {
+    e.stopPropagation()
+    if (confirm('Delete this wordbook?')) deleteWordbook.mutate(id)
+  }
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -85,6 +113,17 @@ export function DictSidebar() {
             >
               <History size={18} />
               <span className="font-semibold text-sm">History</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('wordbook')}
+              className={`flex items-center gap-2 pb-1 border-b-2 transition-colors ${
+                activeTab === 'wordbook'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+              }`}
+            >
+              <Bookmark size={18} />
+              <span className="font-semibold text-sm">Wordbook</span>
             </button>
           </div>
           <button
@@ -154,7 +193,7 @@ export function DictSidebar() {
                 </div>
               ))}
             </>
-          ) : (
+          ) : activeTab === 'history' ? (
             <div className="space-y-1">
               <div className="flex justify-end px-2 mb-2">
                 <button
@@ -183,11 +222,107 @@ export function DictSidebar() {
                 </div>
               )}
             </div>
+          ) : (
+            // Wordbook Tab
+            <div className="space-y-1 h-full flex flex-col">
+              {selectedWbId === null ? (
+                // Wordbook List
+                <>
+                  <div className="flex justify-between items-center px-2 mb-2">
+                    <span className="text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                      My Wordbooks
+                    </span>
+                    <button
+                      onClick={handleCreateWordbook}
+                      className="p-1 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded"
+                      title="Create Wordbook"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                  {wordbooks.map((wb) => (
+                    <div
+                      key={wb.id}
+                      onClick={() => setSelectedWbId(wb.id)}
+                      className="group flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Bookmark size={14} />
+                        <span>{wb.name}</span>
+                      </div>
+                      <button
+                        onClick={(e) => handleDeleteWordbook(e, wb.id)}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  {wordbooks.length === 0 && (
+                    <div className="text-center py-8 text-sm text-gray-400 dark:text-slate-600">
+                      No wordbooks
+                    </div>
+                  )}
+                </>
+              ) : (
+                // Entries List
+                <>
+                  <div className="flex items-center gap-2 px-2 mb-2 pb-2 border-b border-gray-100 dark:border-slate-800">
+                    <button
+                      onClick={() => setSelectedWbId(null)}
+                      className="p-1 -ml-1 text-gray-500 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 rounded"
+                    >
+                      <ArrowLeft size={16} />
+                    </button>
+                    <span className="font-medium text-sm dark:text-slate-200">
+                      {wordbooks.find((w) => w.id === selectedWbId)?.name}
+                    </span>
+                  </div>
+                  <div className="flex-1 overflow-y-auto">
+                    {wbEntries.map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="group flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        <button
+                          className="flex-1 text-left"
+                          onClick={() => {
+                            setSearchWord(entry.word)
+                            setSidebarOpen(false)
+                          }}
+                        >
+                          {entry.word}
+                        </button>
+                        <button
+                          onClick={() =>
+                            deleteEntry.mutate({ wbId: selectedWbId, entryId: entry.id })
+                          }
+                          className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                    {wbEntries.length === 0 && (
+                      <div className="text-center py-8 text-sm text-gray-400 dark:text-slate-600">
+                        Empty wordbook
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </nav>
 
         <div className="px-4 py-2 text-xs text-gray-400 border-t border-gray-100 dark:border-slate-800">
-          {activeTab === 'dicts' ? `${realDicts.length} dictionaries` : `${history.length} history items`}
+          {activeTab === 'dicts'
+            ? `${realDicts.length} dictionaries`
+            : activeTab === 'history'
+            ? `${history.length} history items`
+            : selectedWbId === null
+            ? `${wordbooks.length} wordbooks`
+            : `${wbEntries.length} words`}
         </div>
 
         {/* Resize handle — desktop only */}

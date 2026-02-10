@@ -22,14 +22,14 @@ interface AppState {
   sidebarOpen: boolean
   sidebarWidth: number
   darkMode: boolean
-  activeSidebarTab: 'dicts' | 'history'
+  activeSidebarTab: 'dicts' | 'history' | 'wordbook'
   settingsOpen: boolean
   setSearchWord: (word: string) => void
   setActiveDict: (uuid: string) => void
   setSidebarOpen: (open: boolean) => void
   setSidebarWidth: (width: number) => void
   toggleDarkMode: () => void
-  setActiveSidebarTab: (tab: 'dicts' | 'history') => void
+  setActiveSidebarTab: (tab: 'dicts' | 'history' | 'wordbook') => void
   setSettingsOpen: (open: boolean) => void
 }
 

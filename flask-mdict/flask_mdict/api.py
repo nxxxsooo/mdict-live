@@ -429,6 +429,6 @@ def check_word_in_wordbooks():
         return jsonify([])
     db = get_db("app_db")
     rows = db.execute(
-        "SELECT wordbook_id FROM wordbook_entry WHERE word = ?", (word,)
+        "SELECT wordbook_id, id FROM wordbook_entry WHERE word = ?", (word,)
     ).fetchall()
-    return jsonify([row["wordbook_id"] for row in rows])
+    return jsonify([dict(row) for row in rows])

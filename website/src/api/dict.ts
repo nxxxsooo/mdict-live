@@ -123,5 +123,5 @@ export const api = {
     }),
 
   checkWordInWordbooks: (word: string) =>
-    fetchJson<number[]>(`/api/wordbooks/entries?word=${encodeURIComponent(word)}`),
+    fetchJson<{ wordbook_id: number; id: number }[]>(`/api/wordbooks/entries?word=${encodeURIComponent(word)}`),
 }
