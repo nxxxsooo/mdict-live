@@ -135,20 +135,26 @@ export function DictSidebar() {
           {activeTab === 'dicts' ? (
             <>
               {/* All dicts option */}
-              <button
-                onClick={() => {
-                  setActiveDict('all')
-                  setSidebarOpen(false)
-                }}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors mb-2 ${
-                  activeDict === 'all'
-                    ? 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/30 dark:text-blue-400'
-                    : 'text-gray-600 hover:bg-gray-50 dark:text-slate-400 dark:hover:bg-slate-800'
-                }`}
-              >
-                <span className="w-4 h-4 flex items-center justify-center text-xs">📚</span>
-                All Dictionaries
-              </button>
+              {enabledDicts.length > 1 && (
+                <>
+                  <button
+                    onClick={() => {
+                      setActiveDict('all')
+                      setSidebarOpen(false)
+                    }}
+                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors mb-2 ${
+                      activeDict === 'all'
+                        ? 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/30 dark:text-blue-400'
+                        : 'text-gray-600 hover:bg-gray-50 dark:text-slate-400 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <span className="w-4 h-4 flex items-center justify-center text-xs">📚</span>
+                    All Dictionaries
+                  </button>
+
+                  <div className="my-2 border-t border-gray-100 dark:border-slate-800" />
+                </>
+              )}
 
               {enabledDicts.map((dict) => (
                 <div key={dict.uuid} className="flex items-center group mb-0.5">
