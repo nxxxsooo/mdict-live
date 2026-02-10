@@ -6,6 +6,7 @@ const MIN_SIDEBAR_WIDTH = 200
 const MAX_SIDEBAR_WIDTH = 500
 
 function loadSidebarWidth(): number {
+  if (typeof window === 'undefined') return DEFAULT_SIDEBAR_WIDTH
   try {
     const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY)
     if (saved) {
@@ -13,7 +14,10 @@ function loadSidebarWidth(): number {
       if (w >= MIN_SIDEBAR_WIDTH && w <= MAX_SIDEBAR_WIDTH) return w
     }
   } catch {}
-  return DEFAULT_SIDEBAR_WIDTH
+
+  // Default to 30% width, clamped
+  const width30 = window.innerWidth * 0.3
+  return Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, width30))
 }
 
 interface AppState {
