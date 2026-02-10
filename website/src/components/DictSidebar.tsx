@@ -1,3 +1,4 @@
+import { useCallback, useRef } from 'react'
 import { BookOpen, X } from 'lucide-react'
 import { useDicts, useToggleDict } from '@/hooks/useDict'
 import { useAppStore } from '@/stores/useAppStore'
@@ -9,6 +10,33 @@ export function DictSidebar() {
   const setActiveDict = useAppStore((s) => s.setActiveDict)
   const sidebarOpen = useAppStore((s) => s.sidebarOpen)
   const setSidebarOpen = useAppStore((s) => s.setSidebarOpen)
+  const sidebarWidth = useAppStore((s) => s.sidebarWidth)
+  const setSidebarWidth = useAppStore((s) => s.setSidebarWidth)
+
+  const isDragging = useRef(false)
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault()
+      isDragging.current = true
+      document.body.classList.add('select-none')
+      ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    },
+    [],
+  )
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!isDragging.current) return
+      setSidebarWidth(e.clientX)
+    },
+    [setSidebarWidth],
+  )
+
+  const handlePointerUp = useCallback(() => {
+    isDragging.current = false
+    document.body.classList.remove('select-none')
+  }, [])
 
   const realDicts = dicts.filter((d) => d.type !== 'app')
 
@@ -23,9 +51,10 @@ export function DictSidebar() {
       )}
 
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-screen w-64 bg-white border-r border-gray-200 flex flex-col transition-transform lg:translate-x-0 ${
+        className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-screen bg-white border-r border-gray-200 flex flex-col transition-transform lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        style={{ width: `${sidebarWidth}px` }}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
           <div className="flex items-center gap-2">
@@ -101,6 +130,14 @@ export function DictSidebar() {
         <div className="px-4 py-2 text-xs text-gray-400 border-t border-gray-100">
           {realDicts.length} dictionaries loaded
         </div>
+
+        {/* Resize handle — desktop only */}
+        <div
+          className="hidden lg:block absolute top-0 right-0 w-1 h-full cursor-col-resize hover:w-1.5 hover:bg-blue-400/50 bg-transparent transition-all"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+        />
       </aside>
     </>
   )
