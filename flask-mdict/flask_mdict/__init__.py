@@ -6,32 +6,32 @@ from flask import Blueprint, g
 from .utils import singleton
 
 
-__version__ = '1.4.20'
+__version__ = "1.4.20"
 
 
 mdict = Blueprint(
-    'mdict', __name__,
-    static_folder='static', template_folder='templates')
+    "mdict", __name__, static_folder="static", template_folder="templates"
+)
 
 
 @singleton
-class Config():
+class Config:
     pass
 
 
 def init_app(app, url_prefix=None):
-    Config.MDICT_DIR = app.config.get('MDICT_DIR')
-    Config.MDICT_CACHE = app.config.get('MDICT_CACHE')
+    Config.MDICT_DIR = app.config.get("MDICT_DIR")
+    Config.MDICT_CACHE = app.config.get("MDICT_CACHE")
     if not Config.MDICT_DIR:
         raise ValueError('Please set "MDICT_DIR" in app.config')
 
-    Config.INDEX_DIR = app.config.get('INDEX_DIR')
+    Config.INDEX_DIR = app.config.get("INDEX_DIR")
 
     Config.DB_NAMES = {}
 
     # for flask mdict: setting, history...
-    Config.DB_NAMES['app_db'] = app.config.get('APP_DB')
-    Config.DB_NAMES['wfd_db'] = app.config.get('WFD_DB')
+    Config.DB_NAMES["app_db"] = app.config.get("APP_DB")
+    Config.DB_NAMES["wfd_db"] = app.config.get("WFD_DB")
     helper.init_flask_mdict()
 
     mdicts, db_names = helper.init_mdict(Config.MDICT_DIR, Config.INDEX_DIR)
@@ -46,7 +46,7 @@ def get_mdict():
 
 
 def get_db(uuid):
-    database = getattr(g, '_database', None)
+    database = getattr(g, "_database", None)
     if not database:
         database = g._database = {}
     db = database.get(uuid)
@@ -56,6 +56,7 @@ def get_db(uuid):
             if not os.path.exists(db_name):
                 return
             db = sqlite3.connect(db_name)
+            db.execute("PRAGMA foreign_keys = ON;")
             db.row_factory = sqlite3.Row
             database[uuid] = db
     return db

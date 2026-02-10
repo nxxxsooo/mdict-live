@@ -73,3 +73,83 @@ export function useClearHistory() {
     },
   })
 }
+
+// Wordbook hooks
+
+export function useWordbooks() {
+  return useQuery({
+    queryKey: ['wordbooks'],
+    queryFn: api.getWordbooks,
+  })
+}
+
+export function useCreateWordbook() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: api.createWordbook,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wordbooks'] })
+    },
+  })
+}
+
+export function useDeleteWordbook() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: api.deleteWordbook,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wordbooks'] })
+    },
+  })
+}
+
+export function useUpdateWordbook() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, name }: { id: number; name: string }) =>
+      api.updateWordbook(id, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wordbooks'] })
+    },
+  })
+}
+
+export function useWordbookEntries(wbId: number) {
+  return useQuery({
+    queryKey: ['wordbook', wbId, 'entries'],
+    queryFn: () => api.getWordbookEntries(wbId),
+    enabled: !!wbId,
+  })
+}
+
+export function useAddWordbookEntry() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ wbId, word }: { wbId: number; word: string }) =>
+      api.addWordbookEntry(wbId, word),
+    onSuccess: (_, { wbId }) => {
+      queryClient.invalidateQueries({ queryKey: ['wordbook', wbId, 'entries'] })
+      queryClient.invalidateQueries({ queryKey: ['checkWord'] })
+    },
+  })
+}
+
+export function useDeleteWordbookEntry() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ wbId, entryId }: { wbId: number; entryId: number }) =>
+      api.deleteWordbookEntry(wbId, entryId),
+    onSuccess: (_, { wbId }) => {
+      queryClient.invalidateQueries({ queryKey: ['wordbook', wbId, 'entries'] })
+      queryClient.invalidateQueries({ queryKey: ['checkWord'] })
+    },
+  })
+}
+
+export function useCheckWordInWordbooks(word: string) {
+  return useQuery({
+    queryKey: ['checkWord', word],
+    queryFn: () => api.checkWordInWordbooks(word),
+    enabled: !!word,
+  })
+}

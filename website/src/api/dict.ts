@@ -42,6 +42,19 @@ export interface WordMeta {
   exchanges?: Record<string, string>
 }
 
+export interface Wordbook {
+  id: number
+  name: string
+  created_at: string
+}
+
+export interface WordbookEntry {
+  id: number
+  wordbook_id: number
+  word: string
+  created_at: string
+}
+
 // API fetch helpers
 const BASE = ''
 
@@ -74,4 +87,41 @@ export const api = {
 
   toggleDict: (uuid: string) =>
     fetchJson<{ uuid: string; enabled: boolean }>(`/api/dicts/${uuid}/toggle`, { method: 'POST' }),
+
+  getWordbooks: () => fetchJson<Wordbook[]>('/api/wordbooks'),
+
+  createWordbook: (name: string) =>
+    fetchJson<Wordbook>('/api/wordbooks', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+      headers: { 'Content-Type': 'application/json' },
+    }),
+
+  deleteWordbook: (id: number) =>
+    fetchJson<{ ok: boolean }>(`/api/wordbooks/${id}`, { method: 'DELETE' }),
+
+  updateWordbook: (id: number, name: string) =>
+    fetchJson<{ ok: boolean }>(`/api/wordbooks/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name }),
+      headers: { 'Content-Type': 'application/json' },
+    }),
+
+  getWordbookEntries: (wbId: number) =>
+    fetchJson<WordbookEntry[]>(`/api/wordbooks/${wbId}/entries`),
+
+  addWordbookEntry: (wbId: number, word: string) =>
+    fetchJson<WordbookEntry>(`/api/wordbooks/${wbId}/entries`, {
+      method: 'POST',
+      body: JSON.stringify({ word }),
+      headers: { 'Content-Type': 'application/json' },
+    }),
+
+  deleteWordbookEntry: (wbId: number, entryId: number) =>
+    fetchJson<{ ok: boolean }>(`/api/wordbooks/${wbId}/entries/${entryId}`, {
+      method: 'DELETE',
+    }),
+
+  checkWordInWordbooks: (word: string) =>
+    fetchJson<number[]>(`/api/wordbooks/entries?word=${encodeURIComponent(word)}`),
 }

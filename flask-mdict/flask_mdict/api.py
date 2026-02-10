@@ -4,6 +4,7 @@ import re
 import io
 import os.path
 import datetime
+import sqlite3
 
 from flask import Blueprint, jsonify, request, abort, make_response, send_file, url_for
 
@@ -337,3 +338,97 @@ def toggle_dict(uuid):
     item["enable"] = not item["enable"]
     helper.mdict_enable(uuid, item["enable"])
     return jsonify({"uuid": uuid, "enabled": item["enable"]})
+
+
+@api.route("/wordbooks", methods=["GET"])
+def list_wordbooks():
+    """List all wordbooks."""
+    db = get_db("app_db")
+    rows = db.execute("SELECT * FROM wordbook ORDER BY created_at DESC").fetchall()
+    return jsonify([dict(row) for row in rows])
+
+
+@api.route("/wordbooks", methods=["POST"])
+def create_wordbook():
+    """Create a new wordbook."""
+    name = request.json.get("name")
+    if not name:
+        return jsonify({"error": "Name is required"}), 400
+    db = get_db("app_db")
+    cursor = db.execute("INSERT INTO wordbook (name) VALUES (?)", (name,))
+    db.commit()
+    return jsonify({"id": cursor.lastrowid, "name": name})
+
+
+@api.route("/wordbooks/<int:wb_id>", methods=["DELETE"])
+def delete_wordbook(wb_id):
+    """Delete a wordbook."""
+    db = get_db("app_db")
+    db.execute("DELETE FROM wordbook WHERE id = ?", (wb_id,))
+    db.commit()
+    return jsonify({"ok": True})
+
+
+@api.route("/wordbooks/<int:wb_id>", methods=["PUT"])
+def update_wordbook(wb_id):
+    """Rename a wordbook."""
+    name = request.json.get("name")
+    if not name:
+        return jsonify({"error": "Name is required"}), 400
+    db = get_db("app_db")
+    db.execute("UPDATE wordbook SET name = ? WHERE id = ?", (name, wb_id))
+    db.commit()
+    return jsonify({"ok": True})
+
+
+@api.route("/wordbooks/<int:wb_id>/entries", methods=["GET"])
+def list_wordbook_entries(wb_id):
+    """List entries in a wordbook."""
+    db = get_db("app_db")
+    rows = db.execute(
+        "SELECT * FROM wordbook_entry WHERE wordbook_id = ? ORDER BY created_at DESC",
+        (wb_id,),
+    ).fetchall()
+    return jsonify([dict(row) for row in rows])
+
+
+@api.route("/wordbooks/<int:wb_id>/entries", methods=["POST"])
+def add_wordbook_entry(wb_id):
+    """Add a word to a wordbook."""
+    word = request.json.get("word")
+    if not word:
+        return jsonify({"error": "Word is required"}), 400
+    db = get_db("app_db")
+    try:
+        cursor = db.execute(
+            "INSERT INTO wordbook_entry (wordbook_id, word) VALUES (?, ?)",
+            (wb_id, word),
+        )
+        db.commit()
+        return jsonify({"id": cursor.lastrowid, "word": word})
+    except sqlite3.IntegrityError:
+        return jsonify({"error": "Word already exists in this wordbook"}), 409
+
+
+@api.route("/wordbooks/<int:wb_id>/entries/<int:entry_id>", methods=["DELETE"])
+def delete_wordbook_entry(wb_id, entry_id):
+    """Remove a word from a wordbook."""
+    db = get_db("app_db")
+    db.execute(
+        "DELETE FROM wordbook_entry WHERE id = ? AND wordbook_id = ?", (entry_id, wb_id)
+    )
+    db.commit()
+    return jsonify({"ok": True})
+
+
+@api.route("/wordbooks/entries", methods=["GET"])
+def check_word_in_wordbooks():
+    """Check which wordbooks contain a specific word."""
+    word = request.args.get("word")
+    if not word:
+        return jsonify([])
+    db = get_db("app_db")
+    rows = db.execute(
+        "SELECT wordbook_id FROM wordbook_entry WHERE word = ?", (word,)
+    ).fetchall()
+    return jsonify([row["wordbook_id"] for row in rows])
