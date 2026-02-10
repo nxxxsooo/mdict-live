@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
+import { useAppStore } from '@/stores/useAppStore'
 
 interface DictPanelProps {
   uuid: string
