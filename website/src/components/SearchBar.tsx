@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Search, X } from 'lucide-react'
-import { useSuggest } from '@/hooks/useDict'
+import { Search, X, Clock } from 'lucide-react'
+import { useSuggest, useHistory } from '@/hooks/useDict'
 import { useAppStore } from '@/stores/useAppStore'
 
 export function SearchBar() {
@@ -12,6 +12,7 @@ export function SearchBar() {
 
   const setSearchWord = useAppStore((s) => s.setSearchWord)
   const searchWord = useAppStore((s) => s.searchWord)
+  const { data: history = [] } = useHistory()
 
   // Debounced query for suggestions
   const [debouncedQuery, setDebouncedQuery] = useState('')
@@ -85,7 +86,7 @@ export function SearchBar() {
             setShowSuggestions(true)
             setSelectedIdx(-1)
           }}
-          onFocus={() => input.trim() && setShowSuggestions(true)}
+          onFocus={() => setShowSuggestions(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search a word..."
           className="flex-1 px-3 py-3 text-lg bg-transparent outline-none text-slate-900 dark:text-slate-100 placeholder-gray-400"
@@ -112,22 +113,48 @@ export function SearchBar() {
         </button>
       </div>
 
-      {/* Suggestions dropdown */}
-      {showSuggestions && suggestions.length > 0 && (
+      {/* Suggestions / History dropdown */}
+      {showSuggestions && (
         <ul className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg max-h-64 overflow-y-auto">
-          {suggestions.map((s, i) => (
-            <li
-              key={s}
-              onMouseDown={() => doSearch(s)}
-              className={`px-4 py-2 cursor-pointer text-sm ${
-                i === selectedIdx
-                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                  : 'hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300'
-              }`}
-            >
-              {s}
-            </li>
-          ))}
+          {input.trim() ? (
+            // Suggestions
+            suggestions.length > 0 && suggestions.map((s, i) => (
+              <li
+                key={s}
+                onMouseDown={() => doSearch(s)}
+                className={`px-4 py-2 cursor-pointer text-sm ${
+                  i === selectedIdx
+                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                    : 'hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300'
+                }`}
+              >
+                {s}
+              </li>
+            ))
+          ) : (
+            // History
+            history.length > 0 && (
+              <>
+                <li className="px-4 py-2 text-xs font-medium text-gray-400 dark:text-slate-500 uppercase tracking-wider">
+                  Recent Searches
+                </li>
+                {history.slice(0, 10).map((item, i) => (
+                  <li
+                    key={item.word}
+                    onMouseDown={() => doSearch(item.word)}
+                    className={`px-4 py-2 cursor-pointer text-sm flex items-center gap-2 ${
+                      i === selectedIdx
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300'
+                    }`}
+                  >
+                    <Clock size={14} className="text-gray-400" />
+                    {item.word}
+                  </li>
+                ))}
+              </>
+            )
+          )}
         </ul>
       )}
     </div>

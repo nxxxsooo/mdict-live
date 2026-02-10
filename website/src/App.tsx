@@ -1,11 +1,11 @@
 import { useEffect } from 'react'
-import { Menu } from 'lucide-react'
+import { Menu, Settings } from 'lucide-react'
 import { SearchBar } from '@/components/SearchBar'
 import { DictSidebar } from '@/components/DictSidebar'
 import { ResultsArea } from '@/components/ResultsArea'
-import { HistoryPanel } from '@/components/HistoryPanel'
 import { WordMeta } from '@/components/WordMeta'
 import { useAppStore } from '@/stores/useAppStore'
+import { SettingsPanel } from '@/components/SettingsPanel'
 
 export default function App() {
   const searchWord = useAppStore((s) => s.searchWord)
@@ -13,6 +13,7 @@ export default function App() {
   const setSidebarOpen = useAppStore((s) => s.setSidebarOpen)
   const darkMode = useAppStore((s) => s.darkMode)
   const toggleDarkMode = useAppStore((s) => s.toggleDarkMode)
+  const setSettingsOpen = useAppStore((s) => s.setSettingsOpen)
 
   // Sync dark mode class
   useEffect(() => {
@@ -56,6 +57,12 @@ export default function App() {
               <Menu size={20} />
             </button>
             <SearchBar />
+            <button
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-slate-400 transition-colors"
+              onClick={() => setSettingsOpen(true)}
+            >
+              <Settings size={20} />
+            </button>
           </div>
         </header>
 
@@ -63,9 +70,10 @@ export default function App() {
         <div className="max-w-4xl mx-auto px-4 py-4">
           {searchWord && <WordMeta word={searchWord} />}
           <ResultsArea />
-          <HistoryPanel />
         </div>
       </main>
+
+      <SettingsPanel />
     </div>
   )
 }
