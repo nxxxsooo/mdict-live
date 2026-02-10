@@ -157,7 +157,8 @@ export function DictSidebar() {
                       setActiveDict(dict.uuid)
                       setSidebarOpen(false)
                     }}
-                    className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                    title={dict.title}
+                    className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors min-w-0 ${
                       activeDict === dict.uuid
                         ? 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/30 dark:text-blue-400'
                         : 'text-gray-600 hover:bg-gray-50 dark:text-slate-400 dark:hover:bg-slate-800'
@@ -232,13 +233,13 @@ export function DictSidebar() {
                       onClick={() => setSelectedWbId(wb.id)}
                       className="group flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer transition-colors"
                     >
-                      <div className="flex items-center gap-2">
-                        <Bookmark size={14} />
-                        <span>{wb.name}</span>
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <Bookmark size={14} className="flex-shrink-0" />
+                        <span className="truncate" title={wb.name}>{wb.name}</span>
                       </div>
                       <button
                         onClick={(e) => handleDeleteWordbook(e, wb.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all"
+                        className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all flex-shrink-0"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -271,7 +272,8 @@ export function DictSidebar() {
                         className="group flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
                       >
                         <button
-                          className="flex-1 text-left"
+                          className="flex-1 text-left min-w-0 truncate"
+                          title={entry.word}
                           onClick={() => {
                             setSearchWord(entry.word)
                             setSidebarOpen(false)
@@ -283,7 +285,7 @@ export function DictSidebar() {
                           onClick={() =>
                             deleteEntry.mutate({ wbId: selectedWbId, entryId: entry.id })
                           }
-                          className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all"
+                          className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all flex-shrink-0"
                         >
                           <Trash2 size={14} />
                         </button>
