@@ -20,12 +20,12 @@ export function ResultsArea() {
     return (
       <div className="space-y-4 mt-4">
         {[1, 2].map((i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-200 overflow-hidden animate-pulse">
-            <div className="h-10 bg-gray-50 border-b border-gray-100" />
+          <div key={i} className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden animate-pulse">
+            <div className="h-10 bg-gray-50 dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700" />
             <div className="p-4 space-y-3">
-              <div className="h-4 bg-gray-100 rounded w-3/4" />
-              <div className="h-4 bg-gray-100 rounded w-1/2" />
-              <div className="h-4 bg-gray-100 rounded w-2/3" />
+              <div className="h-4 bg-gray-100 dark:bg-slate-800 rounded w-3/4" />
+              <div className="h-4 bg-gray-100 dark:bg-slate-800 rounded w-1/2" />
+              <div className="h-4 bg-gray-100 dark:bg-slate-800 rounded w-2/3" />
             </div>
           </div>
         ))}
@@ -35,7 +35,7 @@ export function ResultsArea() {
 
   if (error) {
     return (
-      <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+      <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
         Failed to look up word. Please try again.
       </div>
     )
@@ -45,8 +45,8 @@ export function ResultsArea() {
 
   if (results.length === 0) {
     return (
-      <div className="mt-4 p-8 text-center text-gray-400">
-        <p className="text-lg">No results found for "<span className="text-gray-600 font-medium">{searchWord}</span>"</p>
+      <div className="mt-4 p-8 text-center text-gray-400 dark:text-slate-600">
+        <p className="text-lg">No results found for "<span className="text-gray-600 dark:text-slate-400 font-medium">{searchWord}</span>"</p>
       </div>
     )
   }

@@ -10,6 +10,7 @@ interface DictPanelProps {
 export function DictPanel({ uuid, title, logo, html }: DictPanelProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [height, setHeight] = useState(200)
+  const darkMode = useAppStore((s) => s.darkMode)
 
   // Build full HTML document for the iframe
   const iframeDoc = `<!DOCTYPE html>
@@ -18,11 +19,14 @@ export function DictPanel({ uuid, title, logo, html }: DictPanelProps) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { margin: 0; padding: 12px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; padding: 12px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: white; color: black; }
     img { max-width: 100%; height: auto; }
     a[data-entry-word] { color: #2563eb; text-decoration: none; cursor: pointer; }
     a[data-entry-word]:hover { text-decoration: underline; }
     a[data-sound-url] { cursor: pointer; }
+    /* Dark mode: invert everything but restore images */
+    html.dark body { filter: invert(1) hue-rotate(180deg); }
+    html.dark img, html.dark video { filter: invert(1) hue-rotate(180deg); }
   </style>
 </head>
 <body>
@@ -30,6 +34,16 @@ export function DictPanel({ uuid, title, logo, html }: DictPanelProps) {
     <div class="mdict">${html}</div>
   </div>
   <script>
+    // Listen for theme changes from parent
+    window.addEventListener('message', (e) => {
+      if (e.data.type === 'theme') {
+        if (e.data.dark) document.documentElement.classList.add('dark');
+        else document.documentElement.classList.remove('dark');
+      }
+    });
+    // Request initial theme
+    window.parent.postMessage({ type: 'request-theme', uuid: '${uuid}' }, '*');
+
     // Auto-resize: notify parent of content height
     function notifyHeight() {
       const h = document.documentElement.scrollHeight;
@@ -72,6 +86,9 @@ export function DictPanel({ uuid, title, logo, html }: DictPanelProps) {
       if (e.data?.type === 'iframe-resize' && e.data.uuid === uuid) {
         setHeight(Math.max(e.data.height + 20, 100))
       }
+      if (e.data?.type === 'request-theme' && e.data.uuid === uuid) {
+         iframeRef.current?.contentWindow?.postMessage({ type: 'theme', dark: darkMode }, '*')
+      }
       if (e.data?.type === 'entry-click' && e.data.word) {
         // Dispatch custom event for the app to handle
         window.dispatchEvent(
@@ -81,11 +98,16 @@ export function DictPanel({ uuid, title, logo, html }: DictPanelProps) {
     }
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)
-  }, [uuid])
+  }, [uuid, darkMode])
+
+  // Sync theme when darkMode changes
+  useEffect(() => {
+    iframeRef.current?.contentWindow?.postMessage({ type: 'theme', dark: darkMode }, '*')
+  }, [darkMode])
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-4">
-      <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden mb-4 transition-colors">
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 transition-colors">
         {logo && (
           <img
             src={logo}
@@ -94,7 +116,7 @@ export function DictPanel({ uuid, title, logo, html }: DictPanelProps) {
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
         )}
-        <span className="text-sm font-medium text-gray-700">{title}</span>
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{title}</span>
       </div>
       <iframe
         ref={iframeRef}

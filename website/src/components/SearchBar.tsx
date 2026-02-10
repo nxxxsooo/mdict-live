@@ -74,7 +74,7 @@ export function SearchBar() {
 
   return (
     <div ref={wrapperRef} className="relative w-full max-w-2xl mx-auto">
-      <div className="flex items-center bg-white border border-gray-200 rounded-xl shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+      <div className="flex items-center bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-blue-900/30 transition-all">
         <Search className="ml-4 text-gray-400" size={20} />
         <input
           ref={inputRef}
@@ -88,7 +88,7 @@ export function SearchBar() {
           onFocus={() => input.trim() && setShowSuggestions(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search a word..."
-          className="flex-1 px-3 py-3 text-lg bg-transparent outline-none"
+          className="flex-1 px-3 py-3 text-lg bg-transparent outline-none text-slate-900 dark:text-slate-100 placeholder-gray-400"
           autoComplete="off"
           spellCheck={false}
         />
@@ -99,7 +99,7 @@ export function SearchBar() {
               setShowSuggestions(false)
               inputRef.current?.focus()
             }}
-            className="mr-2 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+            className="mr-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800"
           >
             <X size={18} />
           </button>
@@ -114,15 +114,15 @@ export function SearchBar() {
 
       {/* Suggestions dropdown */}
       {showSuggestions && suggestions.length > 0 && (
-        <ul className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-64 overflow-y-auto">
+        <ul className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg max-h-64 overflow-y-auto">
           {suggestions.map((s, i) => (
             <li
               key={s}
               onMouseDown={() => doSearch(s)}
               className={`px-4 py-2 cursor-pointer text-sm ${
                 i === selectedIdx
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'hover:bg-gray-50'
+                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                  : 'hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300'
               }`}
             >
               {s}

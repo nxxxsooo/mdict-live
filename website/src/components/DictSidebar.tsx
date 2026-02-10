@@ -51,18 +51,18 @@ export function DictSidebar() {
       )}
 
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-screen bg-white border-r border-gray-200 flex flex-col transition-transform lg:translate-x-0 ${
+        className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-screen bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col transition-transform lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{ width: `${sidebarWidth}px` }}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <BookOpen size={18} className="text-blue-500" />
-            <span className="font-semibold text-sm">Dictionaries</span>
+            <span className="font-semibold text-sm dark:text-slate-200">Dictionaries</span>
           </div>
           <button
-            className="lg:hidden p-1 rounded hover:bg-gray-100"
+            className="lg:hidden p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-800 dark:text-slate-400"
             onClick={() => setSidebarOpen(false)}
           >
             <X size={18} />
@@ -78,15 +78,15 @@ export function DictSidebar() {
             }}
             className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
               activeDict === 'all'
-                ? 'bg-blue-50 text-blue-700 font-medium'
-                : 'text-gray-600 hover:bg-gray-50'
+                ? 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/30 dark:text-blue-400'
+                : 'text-gray-600 hover:bg-gray-50 dark:text-slate-400 dark:hover:bg-slate-800'
             }`}
           >
             <span className="w-4 h-4 flex items-center justify-center text-xs">📚</span>
             All Dictionaries
           </button>
 
-          <div className="my-2 border-t border-gray-100" />
+          <div className="my-2 border-t border-gray-100 dark:border-slate-800" />
 
           {realDicts.map((dict) => (
             <div key={dict.uuid} className="flex items-center group">
@@ -97,8 +97,8 @@ export function DictSidebar() {
                 }}
                 className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                   activeDict === dict.uuid
-                    ? 'bg-blue-50 text-blue-700 font-medium'
-                    : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/30 dark:text-blue-400'
+                    : 'text-gray-600 hover:bg-gray-50 dark:text-slate-400 dark:hover:bg-slate-800'
                 } ${!dict.enabled ? 'opacity-40' : ''}`}
               >
                 <img
@@ -113,7 +113,7 @@ export function DictSidebar() {
               <button
                 onClick={() => toggleDict.mutate(dict.uuid)}
                 className={`flex-shrink-0 mr-2 w-8 h-4 rounded-full transition-colors relative ${
-                  dict.enabled ? 'bg-blue-500' : 'bg-gray-300'
+                  dict.enabled ? 'bg-blue-500' : 'bg-gray-300 dark:bg-slate-700'
                 }`}
                 title={dict.enabled ? 'Disable' : 'Enable'}
               >
@@ -127,7 +127,7 @@ export function DictSidebar() {
           ))}
         </nav>
 
-        <div className="px-4 py-2 text-xs text-gray-400 border-t border-gray-100">
+        <div className="px-4 py-2 text-xs text-gray-400 border-t border-gray-100 dark:border-slate-800">
           {realDicts.length} dictionaries loaded
         </div>
 
