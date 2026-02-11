@@ -21,3 +21,8 @@ __pycache__/
 flask_mdict.db
 flask_mdict_wfd.db
 my-flask-mdict.xml
+
+# Exclude frontend build artifacts and dependencies
+website/node_modules
+website/dist
+.env

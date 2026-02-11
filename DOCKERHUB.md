@@ -1,98 +1,60 @@
-# Flask-MDict Docker Image
+# MdictLive
 
-A Dockerized version of [flask-mdict](https://github.com/liuyug/flask-mdict) with significant improvements for modern deployment.
-- **GitHub Repository**: [nxxxsooo/docker-flask-mdict](https://github.com/nxxxsooo/docker-flask-mdict)
-- **DockerHub**: [tardivo/flask-mdict](https://hub.docker.com/r/tardivo/flask-mdict)
+> A modern web reader for MDict dictionaries with React 19 SPA, dark mode, and faithful dictionary rendering.
+
+[GitHub Repository](https://github.com/nxxxsooo/mdict-live) | [Live Demo](https://dict.mjshao.fun)
 
 ## Features
 
-*   **Web Interface**: Access your dictionaries from any browser.
-*   **Format Support**: Fully supports `.mdx` and `.mdd` files.
-*   **Persistence**: Keep your dictionaries and configuration safe across restarts.
-*   **Multi-Arch**: Supports `amd64` and `arm64`.
-
-> [!IMPORTANT]
-> **No dictionaries are included.** You must provide your own `.mdx` and `.mdd` files. Place them in a folder on your host machine (e.g., `./library`) and mount it to `/app/content`.
+- **React 19 SPA**: Fast, responsive, and modern interface.
+- **Dark Mode**: Built-in dark theme support (`Ctrl+Shift+D`).
+- **Sidebar**: Manage dictionaries and navigate easily.
+- **Wordbook**: Save words to your favorites.
+- **Word Frequency**: COCA/BNC ranking integration.
+- **LZO Support**: Native support for LZO-compressed `.mdx` files.
+- **Multi-Arch**: Supports `linux/amd64` and `linux/arm64`.
 
 ## Quick Start
 
-**Bash (Mac/Linux):**
+**Bash**
 ```bash
 docker run -d \
-  --name flask-mdict \
+  --name mdict-live \
   -p 5248:5248 \
   -v $(pwd)/library:/app/content \
-  tardivo/flask-mdict:latest
+  nxxxsooo/mdict-live:latest
 ```
 
-**PowerShell (Windows):**
+**PowerShell**
 ```powershell
 docker run -d `
-  --name flask-mdict `
+  --name mdict-live `
   -p 5248:5248 `
   -v ${PWD}/library:/app/content `
-  tardivo/flask-mdict:latest
+  nxxxsooo/mdict-live:latest
 ```
 
-**Command Prompt (Windows CMD):**
-```cmd
-docker run -d ^
-  --name flask-mdict ^
-  -p 5248:5248 ^
-  -v %cd%\library:/app/content ^
-  tardivo/flask-mdict:latest
-```
-
-## Configuration
-
-### Volumes
-
-| Container Path | Description | Suggested Host Path |
-| :--- | :--- | :--- |
-| `/app/content` | Stores dictionary files (`.mdx`, `.mdd`) and the database. | `./library` |
-| `/config` | Stores the `flask_mdict.json` configuration file. | `./config` |
-
-### Custom Configuration File
-
-To use a custom `flask_mdict.json`, map a volume to `/config` and override the command:
+## Docker Compose
 
 ```yaml
 version: '3.8'
 services:
-  flask-mdict:
-    image: tardivo/flask-mdict:latest
+  mdict-live:
+    image: nxxxsooo/mdict-live:latest
+    container_name: mdict-live
+    restart: unless-stopped
     ports:
       - "5248:5248"
     volumes:
       - ./library:/app/content
       - ./config:/config
-    command: ["python", "app.py", "--config-file", "/config/flask_mdict.json"]
 ```
 
-## Running Locally (Docker Compose)
+## Volumes
 
-To build the image locally with your own modifications:
-
-1.  Clone the repository.
-2.  Uncomment `build: .` in `docker-compose.yml`.
-3.  Run `docker-compose up -d --build`.
-
-## Improvements & Changes in this Fork
-
-This version includes several critical fixes and enhancements not present in the original:
-
-1.  **Reverse Proxy Support**: Added `ProxyFix` middleware to correctly handle `X-Forwarded-Proto` headers. Sites behind Nginx/Traefik will now load CSS/assets correctly via HTTPS.
-2.  **LZO Compression Support**: Native support for LZO-compressed MDX files. This resolves common "unknown compression type" or decoding errors ensuring a wider range of dictionaries (especially older or Chinese dictionaries) load correctly.
-3.  **Modernized Build**:
-    -   Reduced image size by removing broken/unused translator plugins.
-    -   Bind address set to `0.0.0.0` by default for Docker compatibility.
-    -   Fixed `AttributeError: 'bytes' object has no attribute 'decode'` in MDX decoding logic.
-4.  **Dictionary Tools**: Includes `tools/organize_dicts.py` to help bulk-rename and organize your dictionary library.
+- `/app/content`: Directory containing your `.mdx` and `.mdd` files.
+- `/config`: Directory for persistent configuration and database.
 
 ## Unraid
 
-An XML template is available in the GitHub repository (`flask-mdict.xml`) for easy installation on Unraid.
-
-## License
-
-Based on `flask-mdict` (MIT License).
+Use the XML template `mdict-live.xml` available in the [GitHub repository](https://github.com/nxxxsooo/mdict-live/blob/dev/mdict-live.xml).

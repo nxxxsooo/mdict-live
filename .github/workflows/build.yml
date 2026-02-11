@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build and Push MdictLive Docker Image
 
 on:
   schedule:
@@ -42,7 +42,7 @@ jobs:
           context: .  # Build from root context to access Dockerfile and source
           file: ./Dockerfile
           push: true
-          tags: tardivo/flask-mdict:latest
+          tags: nxxxsooo/mdict-live:latest
           platforms: linux/amd64,linux/arm64 # Multi-arch support
 
       # 5. Update Docker Hub Description
@@ -51,5 +51,5 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: tardivo/flask-mdict
+          repository: nxxxsooo/mdict-live
           readme-filepath: ./DOCKERHUB.md

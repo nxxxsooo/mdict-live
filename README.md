@@ -1,107 +1,99 @@
-# Flask-MDict Docker Image
+# 📖 MdictLive
 
-A Dockerized version of [flask-mdict](https://github.com/liuyug/flask-mdict) with significant improvements for modern deployment.
-- **GitHub Repository**: [nxxxsooo/docker-flask-mdict](https://github.com/nxxxsooo/docker-flask-mdict)
-- **DockerHub**: [tardivo/flask-mdict](https://hub.docker.com/r/tardivo/flask-mdict)
+> A modern web reader for MDict dictionaries — React 19 SPA with dark mode, wordbook, and faithful dictionary rendering.
+
+![MdictLive Screenshot](screenshots/screenshot-light.png)
+
+MdictLive is a complete overhaul of the classic `flask-mdict` project, rebuilding the frontend as a modern Single Page Application (SPA) while preserving the robust Python backend for MDict file parsing.
+
+It solves the biggest problem with existing web MDict viewers: **faithful rendering**. Instead of trying to sanitize or restyle the dictionary content (which breaks complex layouts), MdictLive treats each entry as a sovereign document, rendering it exactly as the dictionary author intended, while wrapping it in a modern, responsive interface.
 
 ## Features
 
-*   **Web Interface**: Access your dictionaries from any browser.
-*   **Format Support**: Fully supports `.mdx` and `.mdd` files.
-*   **Persistence**: Keep your dictionaries and configuration safe across restarts.
-*   **Multi-Arch**: Supports `amd64` and `arm64`.
-
-> [!IMPORTANT]
-> **No dictionaries are included.** You must provide your own `.mdx` and `.mdd` files. Place them in a folder on your host machine (e.g., `./library`) and mount it to `/app/content`.
+- **Modern Tech Stack**: Built with React 19, Vite 7, and Tailwind v4.
+- **Dark Mode**: Toggle with `Ctrl+Shift+D` or via settings.
+- **Sidebar Navigation**: Manage multiple dictionaries, toggle visibility, and quick-jump.
+- **Wordbook**: Star/favorite words for later review.
+- **Instant Search**: Auto-suggestions and local search history.
+- **Word Frequency**: Integrated COCA/BNC frequency data for English words.
+- **Faithful Rendering**: Uses sandboxed iframes to preserve original dictionary CSS/JS.
+- **LZO Compression**: Native support for older/Chinese dictionaries using LZO.
+- **Reverse Proxy Ready**: Handles `X-Forwarded-Proto` correctly (HTTPS friendly).
+- **Multi-Arch**: Docker images for `amd64` and `arm64` (Apple Silicon).
 
 ## Quick Start
 
-**Bash (Mac/Linux):**
+### Docker Run
+
+**Bash (Mac/Linux)**
 ```bash
 docker run -d \
-  --name flask-mdict \
+  --name mdict-live \
   -p 5248:5248 \
   -v $(pwd)/library:/app/content \
-  tardivo/flask-mdict:latest
+  nxxxsooo/mdict-live:latest
 ```
 
-**PowerShell (Windows):**
+**PowerShell (Windows)**
 ```powershell
 docker run -d `
-  --name flask-mdict `
+  --name mdict-live `
   -p 5248:5248 `
   -v ${PWD}/library:/app/content `
-  tardivo/flask-mdict:latest
+  nxxxsooo/mdict-live:latest
 ```
 
-**Command Prompt (Windows CMD):**
-```cmd
-docker run -d ^
-  --name flask-mdict ^
-  -p 5248:5248 ^
-  -v %cd%\library:/app/content ^
-  tardivo/flask-mdict:latest
-```
-
-## Configuration
-
-### Volumes
-
-| Container Path | Description | Suggested Host Path |
-| :--- | :--- | :--- |
-| `/app/content` | Stores dictionary files (`.mdx`, `.mdd`) and the database. | `./library` |
-| `/config` | Stores the `flask_mdict.json` configuration file. | `./config` |
-
-### Custom Configuration File
-
-To use a custom `flask_mdict.json`, map a volume to `/config` and override the command:
+### Docker Compose
 
 ```yaml
 version: '3.8'
 services:
-  flask-mdict:
-    image: tardivo/flask-mdict:latest
+  mdict-live:
+    image: nxxxsooo/mdict-live:latest
+    container_name: mdict-live
+    restart: unless-stopped
     ports:
       - "5248:5248"
     volumes:
       - ./library:/app/content
       - ./config:/config
-    command: ["python", "app.py", "--config-file", "/config/flask_mdict.json"]
 ```
 
-## Improvements & Changes in this Fork
+## Configuration
 
-This version includes several critical fixes and enhancements not present in the original:
+| Path | Description |
+|------|-------------|
+| `/app/content` | **Required**. Place your `.mdx` and `.mdd` files here. Subdirectories are supported. |
+| `/config` | Optional. Stores `flask_mdict.json` config and `flask_mdict.db` (history/favorites). |
 
-1.  **Reverse Proxy Support**: Added `ProxyFix` middleware to correctly handle `X-Forwarded-Proto` headers. Sites behind Nginx/Traefik will now load CSS/assets correctly via HTTPS.
-2.  **LZO Compression Support**: Native support for LZO-compressed MDX files. This resolves common "unknown compression type" or decoding errors ensuring a wider range of dictionaries (especially older or Chinese dictionaries) load correctly.
-3.  **Modernized Build**:
-    -   Reduced image size by removing broken/unused translator plugins.
-    -   Bind address set to `0.0.0.0` by default for Docker compatibility.
-    -   Fixed `AttributeError: 'bytes' object has no attribute 'decode'` in MDX decoding logic.
-4.  **Dictionary Tools**: Includes `tools/organize_dicts.py` to help bulk-rename and organize your dictionary library.
+## Tech Stack
 
-## Unraid
+- **Frontend**: React 19, Vite 7, Tailwind CSS v4, Zustand (State), React Query (Data), Framer Motion (Animations), Lucide React (Icons).
+- **Backend**: Python 3.11, Flask, `mdict-utils` (modified for LZO).
+- **Container**: Alpine Linux-based multi-stage build (Node.js build -> Python runtime).
 
-An XML template is available in the GitHub repository (`flask-mdict.xml`) for easy installation on Unraid.
+## Building from Source
 
-## Build Workflow (GitHub Actions)
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/nxxxsooo/mdict-live.git
+   cd mdict-live
+   ```
 
-This repository contains a GitHub Actions workflow to automatically build and push the Docker image.
+2. Build and run with Docker Compose:
+   ```bash
+   docker-compose up -d --build
+   ```
 
-The workflow is defined in `.github/workflows/build.yml`.
+The app will be available at `http://localhost:5248`.
 
-**Triggers:**
-- **Schedule:** Runs daily at 2:00 AM UTC.
-- **Manual:** Can be triggered manually via the "Run workflow" button in the Actions tab.
+## Credits
 
-**Steps:**
-1. Check out the upstream repository (`liuyug/flask-mdict`).
-2. Log in to Docker Hub using GitHub Secrets.
-3. Build the Docker image from `upstream/Dockerfile`.
-4. Push the image to `tardivo/flask-mdict:latest`.
-5. Supports multi-architecture builds (`linux/amd64`, `linux/arm64`).
+Forked from [liuyug/flask-mdict](https://github.com/liuyug/flask-mdict).
+Major frontend rewrite and rebranding by [Mingjian Shao](https://mjshao.fun).
 
-## License
+## Links
 
-Based on `flask-mdict` (MIT License).
+- [Live Demo](https://dict.mjshao.fun)
+- [GitHub Repository](https://github.com/nxxxsooo/mdict-live)
+- [Docker Hub](https://hub.docker.com/r/nxxxsooo/mdict-live)

@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>mdict-live</Name>
+  <Repository>nxxxsooo/mdict-live</Repository>
+  <Registry>https://hub.docker.com/r/nxxxsooo/mdict-live</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/nxxxsooo/mdict-live/issues</Support>
+  <Project>https://github.com/nxxxsooo/mdict-live</Project>
+  <Overview>MdictLive is a modern web-based MDict dictionary viewer with a React 19 SPA frontend. Look up words across multiple dictionaries simultaneously with instant search, dark mode, word frequency data, and a responsive design that preserves authentic dictionary styling.&#xD;
+&#xD;
+Features:&#xD;
+- React 19 SPA with dark mode, sidebar, wordbook&#xD;
+- Supports MDict dictionaries (.mdx/.mdd)&#xD;
+- Multi-dictionary simultaneous lookup&#xD;
+- Word frequency database (COCA/BNC)&#xD;
+- Multi-arch: amd64 and arm64&#xD;
+&#xD;
+Homepage: https://mjshao.fun/work/mdict-live</Overview>
+  <Category>Productivity: Tools:Utilities</Category>
+  <WebUI>http://[IP]:[PORT:5248]/</WebUI>
+  <Icon>https://raw.githubusercontent.com/nxxxsooo/mdict-live/dev/logo.png</Icon>
+  <Config Name="Web UI Port" Target="5248" Default="5248" Mode="tcp" Description="The port for the web interface." Type="Port" Display="always" Required="true" Mask="false">5248</Config>
+  <Config Name="Dictionary Library" Target="/app/content" Default="/mnt/user/appdata/mdict-live/library" Mode="rw" Description="Directory containing .mdx and .mdd dictionary files." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/mdict-live/library</Config>
+  <Config Name="Configuration" Target="/config" Default="/mnt/user/appdata/mdict-live" Mode="rw" Description="Directory for flask_mdict.json configuration file." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/mdict-live</Config>
+  <Config Name="Run Command" Target="COMMAND" Default="" Mode="" Description="Override default command to use the external config file" Type="Variable" Display="advanced" Required="false" Mask="false">python app.py --config-file /config/flask_mdict.json</Config>
+</Container>
