@@ -57,4 +57,4 @@ services:
 
 ## Unraid
 
-Use the XML template `mdict-live.xml` available in the [GitHub repository](https://github.com/nxxxsooo/mdict-live/blob/dev/mdict-live.xml).
+Use the XML template `mdict-live.xml` available in the [GitHub repository](https://github.com/nxxxsooo/mdict-live/blob/main/mdict-live.xml).
