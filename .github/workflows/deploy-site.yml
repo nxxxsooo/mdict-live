@@ -1,4 +1,4 @@
-name: Deploy Website to GitHub Pages
+name: Deploy MdictLive Landing Page to GitHub Pages
 
 on:
   push:

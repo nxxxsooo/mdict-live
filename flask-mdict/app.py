@@ -31,7 +31,7 @@ def create_app(config=None):
     app.config["MDICT_CACHE"] = False
     app.config["SECRET_KEY"] = "21ffjfdlsafj2ofjaslfjdsaf"
     app.config["INDEX_DIR"] = None
-    app.config["APP_NAME"] = "Flask Mdict"
+    app.config["APP_NAME"] = "MdictLive"
 
     if config:
         app.config.update(config)

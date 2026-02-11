@@ -56,6 +56,13 @@ export default function App() {
             >
               <Menu size={20} />
             </button>
+            
+            <a href="/" className="hidden sm:flex items-center gap-2 mr-2 group">
+              <span className="font-bold text-xl text-slate-800 dark:text-slate-100 tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                Mdict<span className="text-blue-600 dark:text-blue-400">Live</span>
+              </span>
+            </a>
+
             <SearchBar />
             <button
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-slate-400 transition-colors"
@@ -66,11 +73,17 @@ export default function App() {
           </div>
         </header>
 
-        {/* Content */}
-        <div className="max-w-4xl mx-auto px-4 py-4">
+        <div className="max-w-4xl mx-auto px-4 py-4 min-h-[calc(100vh-140px)]">
           {searchWord && <WordMeta word={searchWord} />}
           <ResultsArea />
         </div>
+
+        <footer className="py-6 text-center text-sm text-gray-400 dark:text-slate-600 border-t border-gray-100 dark:border-slate-800/50 mt-auto">
+          <p>
+            Powered by <a href="https://mjshao.fun/work/mdict-live" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors">MdictLive</a> • 
+            A project by <a href="https://mjshao.fun" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors">Mingjian Shao</a>
+          </p>
+        </footer>
       </main>
 
       <SettingsPanel />
