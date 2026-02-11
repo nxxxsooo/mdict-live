@@ -1,10 +1,9 @@
 version: '3.8'
 
 services:
-  flask-mdict:
-    # To build locally, uncomment the following line:
-    # build: .
-    image: nxxxsooo/mdict-live:latest
+  mdict-live:
+    build: .
+    # image: tardivo/mdict-live:latest
     container_name: mdict-live
     restart: unless-stopped
     ports:

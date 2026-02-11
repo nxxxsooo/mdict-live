@@ -2,7 +2,7 @@
 
 > A modern web reader for MDict dictionaries with React 19 SPA, dark mode, and faithful dictionary rendering.
 
-[GitHub Repository](https://github.com/nxxxsooo/mdict-live) | [Live Demo](https://dict.mjshao.fun)
+[GitHub Repository](https://github.com/tardivo/mdict-live) | [Live Demo](https://dict.mjshao.fun)
 
 ## Features
 
@@ -22,7 +22,7 @@ docker run -d \
   --name mdict-live \
   -p 5248:5248 \
   -v $(pwd)/library:/app/content \
-  nxxxsooo/mdict-live:latest
+  tardivo/mdict-live:latest
 ```
 
 **PowerShell**
@@ -31,7 +31,7 @@ docker run -d `
   --name mdict-live `
   -p 5248:5248 `
   -v ${PWD}/library:/app/content `
-  nxxxsooo/mdict-live:latest
+  tardivo/mdict-live:latest
 ```
 
 ## Docker Compose
@@ -40,7 +40,7 @@ docker run -d `
 version: '3.8'
 services:
   mdict-live:
-    image: nxxxsooo/mdict-live:latest
+    image: tardivo/mdict-live:latest
     container_name: mdict-live
     restart: unless-stopped
     ports:
@@ -57,4 +57,4 @@ services:
 
 ## Unraid
 
-Use the XML template `mdict-live.xml` available in the [GitHub repository](https://github.com/nxxxsooo/mdict-live/blob/main/mdict-live.xml).
+Use the XML template `mdict-live.xml` available in the [GitHub repository](https://github.com/tardivo/mdict-live/blob/main/mdict-live.xml).

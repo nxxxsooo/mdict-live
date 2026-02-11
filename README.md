@@ -31,7 +31,7 @@ docker run -d \
   --name mdict-live \
   -p 5248:5248 \
   -v $(pwd)/library:/app/content \
-  nxxxsooo/mdict-live:latest
+  tardivo/mdict-live:latest
 ```
 
 **PowerShell (Windows)**
@@ -40,7 +40,7 @@ docker run -d `
   --name mdict-live `
   -p 5248:5248 `
   -v ${PWD}/library:/app/content `
-  nxxxsooo/mdict-live:latest
+  tardivo/mdict-live:latest
 ```
 
 ### Docker Compose
@@ -49,7 +49,7 @@ docker run -d `
 version: '3.8'
 services:
   mdict-live:
-    image: nxxxsooo/mdict-live:latest
+    image: tardivo/mdict-live:latest
     container_name: mdict-live
     restart: unless-stopped
     ports:
@@ -76,7 +76,7 @@ services:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/nxxxsooo/mdict-live.git
+   git clone https://github.com/tardivo/mdict-live.git
    cd mdict-live
    ```
 
@@ -95,5 +95,5 @@ Major frontend rewrite and rebranding by [Mingjian Shao](https://mjshao.fun).
 ## Links
 
 - [Live Demo](https://dict.mjshao.fun)
-- [GitHub Repository](https://github.com/nxxxsooo/mdict-live)
-- [Docker Hub](https://hub.docker.com/r/nxxxsooo/mdict-live)
+- [GitHub Repository](https://github.com/tardivo/mdict-live)
+- [Docker Hub](https://hub.docker.com/r/tardivo/mdict-live)

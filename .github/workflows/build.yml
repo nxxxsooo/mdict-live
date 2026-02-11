@@ -42,7 +42,7 @@ jobs:
           context: .  # Build from root context to access Dockerfile and source
           file: ./Dockerfile
           push: true
-          tags: nxxxsooo/mdict-live:latest
+          tags: tardivo/mdict-live:latest
           platforms: linux/amd64,linux/arm64 # Multi-arch support
 
       # 5. Update Docker Hub Description
@@ -51,5 +51,5 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: nxxxsooo/mdict-live
+          repository: tardivo/mdict-live
           readme-filepath: ./DOCKERHUB.md
