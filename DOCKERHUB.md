@@ -4,7 +4,7 @@
 
 > **📦 Formerly `flask-mdict`.** Both `tardivo/mdict-live` and `tardivo/flask-mdict` receive identical updates.
 
-[GitHub Repository](https://github.com/nxxxsooo/mdict-live) | [Live Demo](https://dict.mjshao.fun)
+[GitHub Repository](https://github.com/nxxxsooo/mdict-live) | [Landing Page](https://mjshao.fun/mdict-live) | [Author](https://mjshao.fun)
 
 ## Features
 

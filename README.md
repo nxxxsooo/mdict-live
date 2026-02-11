@@ -94,6 +94,7 @@ Major frontend rewrite and rebranding by [Mingjian Shao](https://mjshao.fun).
 
 ## Links
 
-- [Live Demo](https://dict.mjshao.fun)
+- [Landing Page](https://mjshao.fun/mdict-live)
+- [Author](https://mjshao.fun)
 - [GitHub Repository](https://github.com/nxxxsooo/mdict-live)
 - [Docker Hub](https://hub.docker.com/r/tardivo/mdict-live) (also available as [`tardivo/flask-mdict`](https://hub.docker.com/r/tardivo/flask-mdict))
