@@ -1,5 +1,11 @@
 # 📖 MdictLive
 
+[![GitHub Release](https://img.shields.io/github/v/release/nxxxsooo/mdict-live?style=flat-square&color=blue)](https://github.com/nxxxsooo/mdict-live/releases)
+[![Docker Pulls](https://img.shields.io/docker/pulls/tardivo/mdict-live?style=flat-square&color=2496ED)](https://hub.docker.com/r/tardivo/mdict-live)
+[![Docker Image Size](https://img.shields.io/docker/image-size/tardivo/mdict-live/latest?style=flat-square&color=2496ED)](https://hub.docker.com/r/tardivo/mdict-live)
+[![License](https://img.shields.io/github/license/nxxxsooo/mdict-live?style=flat-square&color=green)](https://github.com/nxxxsooo/mdict-live/blob/main/LICENSE)
+[![Platform](https://img.shields.io/badge/platform-amd64%20%7C%20arm64-8A2BE2?style=flat-square)](https://hub.docker.com/r/tardivo/mdict-live/tags)
+
 > A modern web reader for MDict dictionaries — React 19 SPA with dark mode, wordbook, and faithful dictionary rendering.
 >
 > 基于 React 19 的现代 MDict 词典 Web 阅读器 — 暗色模式、生词本、忠实词典渲染。
