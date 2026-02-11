@@ -2,7 +2,7 @@
 
 > A modern web reader for MDict dictionaries with React 19 SPA, dark mode, and faithful dictionary rendering.
 
-[GitHub Repository](https://github.com/tardivo/mdict-live) | [Live Demo](https://dict.mjshao.fun)
+[GitHub Repository](https://github.com/nxxxsooo/mdict-live) | [Live Demo](https://dict.mjshao.fun)
 
 ## Features
 
@@ -57,4 +57,4 @@ services:
 
 ## Unraid
 
-Use the XML template `mdict-live.xml` available in the [GitHub repository](https://github.com/tardivo/mdict-live/blob/main/mdict-live.xml).
+Use the XML template `mdict-live.xml` available in the [GitHub repository](https://github.com/nxxxsooo/mdict-live/blob/main/mdict-live.xml).

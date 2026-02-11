@@ -76,7 +76,7 @@ services:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/tardivo/mdict-live.git
+   git clone https://github.com/nxxxsooo/mdict-live.git
    cd mdict-live
    ```
 
@@ -95,5 +95,5 @@ Major frontend rewrite and rebranding by [Mingjian Shao](https://mjshao.fun).
 ## Links
 
 - [Live Demo](https://dict.mjshao.fun)
-- [GitHub Repository](https://github.com/tardivo/mdict-live)
+- [GitHub Repository](https://github.com/nxxxsooo/mdict-live)
 - [Docker Hub](https://hub.docker.com/r/tardivo/mdict-live)

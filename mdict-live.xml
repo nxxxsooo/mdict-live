@@ -7,8 +7,8 @@
   <MyIP/>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
-  <Support>https://github.com/tardivo/mdict-live/issues</Support>
-  <Project>https://github.com/tardivo/mdict-live</Project>
+  <Support>https://github.com/nxxxsooo/mdict-live/issues</Support>
+  <Project>https://github.com/nxxxsooo/mdict-live</Project>
   <Overview>MdictLive is a modern web-based MDict dictionary viewer with a React 19 SPA frontend. Look up words across multiple dictionaries simultaneously with instant search, dark mode, word frequency data, and a responsive design that preserves authentic dictionary styling.&#xD;
 &#xD;
 Features:&#xD;
@@ -21,7 +21,7 @@ Features:&#xD;
 Homepage: https://mjshao.fun/work/mdict-live</Overview>
   <Category>Productivity: Tools:Utilities</Category>
   <WebUI>http://[IP]:[PORT:5248]/</WebUI>
-  <Icon>https://raw.githubusercontent.com/tardivo/mdict-live/main/logo.png</Icon>
+  <Icon>https://raw.githubusercontent.com/nxxxsooo/mdict-live/main/logo.png</Icon>
   <Config Name="Web UI Port" Target="5248" Default="5248" Mode="tcp" Description="The port for the web interface." Type="Port" Display="always" Required="true" Mask="false">5248</Config>
   <Config Name="Dictionary Library" Target="/app/content" Default="/mnt/user/appdata/mdict-live/library" Mode="rw" Description="Directory containing .mdx and .mdd dictionary files." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/mdict-live/library</Config>
   <Config Name="Configuration" Target="/config" Default="/mnt/user/appdata/mdict-live" Mode="rw" Description="Directory for flask_mdict.json configuration file." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/mdict-live</Config>
