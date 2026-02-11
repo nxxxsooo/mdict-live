@@ -66,6 +66,6 @@ services:
 
 ## Unraid
 
-Use the XML template `mdict-live.xml` from the [GitHub repository](https://github.com/nxxxsooo/mdict-live/blob/main/mdict-live.xml). Also available via Community Applications.
+Use the XML template `mdict-live.xml` from the [GitHub repository](https://github.com/nxxxsooo/mdict-live/blob/main/mdict-live.xml). Place it in `/boot/config/plugins/dockerman/templates-user/` and import via Docker tab.
 
-使用 [GitHub 仓库](https://github.com/nxxxsooo/mdict-live/blob/main/mdict-live.xml) 中的 XML 模板安装，也可通过 Community Applications 搜索安装。
+使用 [GitHub 仓库](https://github.com/nxxxsooo/mdict-live/blob/main/mdict-live.xml) 中的 XML 模板，放入 `/boot/config/plugins/dockerman/templates-user/` 后在 Docker 标签页导入。

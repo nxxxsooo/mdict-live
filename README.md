@@ -74,9 +74,9 @@ services:
 
 ## Unraid
 
-Use the XML template [`mdict-live.xml`](https://github.com/nxxxsooo/mdict-live/blob/main/mdict-live.xml) or search in Community Applications. See the [Landing Page](https://mjshao.fun/mdict-live) for detailed Unraid installation guide.
+Use the XML template [`mdict-live.xml`](https://github.com/nxxxsooo/mdict-live/blob/main/mdict-live.xml) — place it in `/boot/config/plugins/dockerman/templates-user/` and import via Docker tab. See the [Landing Page](https://mjshao.fun/mdict-live) for detailed guide.
 
-使用 XML 模板 [`mdict-live.xml`](https://github.com/nxxxsooo/mdict-live/blob/main/mdict-live.xml) 或在 Community Applications 搜索安装。详细 Unraid 安装指南请查看 [项目主页](https://mjshao.fun/mdict-live)。
+使用 XML 模板 [`mdict-live.xml`](https://github.com/nxxxsooo/mdict-live/blob/main/mdict-live.xml)，放入 `/boot/config/plugins/dockerman/templates-user/` 后在 Docker 标签页导入。详细指南请查看 [项目主页](https://mjshao.fun/mdict-live)。
 
 ## Tech Stack / 技术栈
 
