@@ -80,7 +80,7 @@ export default function App() {
 
         <footer className="py-6 text-center text-sm text-gray-400 dark:text-slate-600 border-t border-gray-100 dark:border-slate-800/50 mt-auto">
           <p>
-            Powered by <a href="https://mjshao.fun/work/mdict-live" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors">MdictLive</a> • 
+            Powered by <a href="https://mjshao.fun/mdict-live" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors">MdictLive</a> • 
             A project by <a href="https://mjshao.fun" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors">Mingjian Shao</a>
           </p>
         </footer>

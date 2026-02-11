@@ -18,7 +18,7 @@ Features:&#xD;
 - Word frequency database (COCA/BNC)&#xD;
 - Multi-arch: amd64 and arm64&#xD;
 &#xD;
-Homepage: https://mjshao.fun/work/mdict-live</Overview>
+Homepage: https://mjshao.fun/mdict-live</Overview>
   <Category>Productivity: Tools:Utilities</Category>
   <WebUI>http://[IP]:[PORT:5248]/</WebUI>
   <Icon>https://raw.githubusercontent.com/nxxxsooo/mdict-live/main/logo.png</Icon>

@@ -2,7 +2,7 @@
 
 > A modern web reader for MDict dictionaries — React 19 SPA with dark mode, wordbook, and faithful dictionary rendering.
 
-![MdictLive Screenshot](screenshots/screenshot-light.png)
+![MdictLive Landing Page](https://mjshao.fun/images/projects/mdict-live/cover.png)
 
 MdictLive is a complete overhaul of the classic `flask-mdict` project, rebuilding the frontend as a modern Single Page Application (SPA) while preserving the robust Python backend for MDict file parsing.
 
