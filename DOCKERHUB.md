@@ -2,6 +2,8 @@
 
 > A modern web reader for MDict dictionaries with React 19 SPA, dark mode, and faithful dictionary rendering.
 
+> **📦 Formerly `flask-mdict`.** Both `tardivo/mdict-live` and `tardivo/flask-mdict` receive identical updates.
+
 [GitHub Repository](https://github.com/nxxxsooo/mdict-live) | [Live Demo](https://dict.mjshao.fun)
 
 ## Features
