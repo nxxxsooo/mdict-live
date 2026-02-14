@@ -19,7 +19,13 @@ class Config:
     pass
 
 
+# Module-level cache instance, initialized in init_app()
+_cache = None
+
+
 def init_app(app, url_prefix=None):
+    global _cache
+
     Config.MDICT_DIR = app.config.get("MDICT_DIR")
     Config.MDICT_CACHE = app.config.get("MDICT_CACHE")
     if not Config.MDICT_DIR:
@@ -38,11 +44,20 @@ def init_app(app, url_prefix=None):
     Config.MDICT = mdicts
     Config.DB_NAMES.update(db_names)
 
+    # Initialize cache (Valkey if REDIS_URL is set, otherwise in-memory LRU)
+    from .cache import init_cache
+
+    _cache = init_cache()
+
     app.register_blueprint(mdict, url_prefix=url_prefix)
 
 
 def get_mdict():
     return Config.MDICT
+
+
+def get_cache():
+    return _cache
 
 
 def get_db(uuid):

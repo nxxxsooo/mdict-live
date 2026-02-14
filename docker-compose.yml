@@ -17,3 +17,17 @@ services:
 
     # Override command to use the config file in the mapped folder
     command: [ "python", "app.py", "--config-file", "/config/flask_mdict.json" ]
+
+    # Optional: set REDIS_URL to enable Valkey/Redis cache backend
+    # Without this, the app uses in-memory LRU cache (no extra services needed)
+    # environment:
+    #   - REDIS_URL=redis://valkey:6379/0
+
+  # Optional: Valkey cache backend (uncomment to enable)
+  # Install valkey-py in the container: pip install valkey
+  # valkey:
+  #   image: valkey/valkey:8-alpine
+  #   container_name: mdict-valkey
+  #   restart: unless-stopped
+  #   command: valkey-server --maxmemory 200mb --maxmemory-policy allkeys-lru --save ""
+  #   # No port exposure needed — only mdict-live talks to it

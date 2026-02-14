@@ -78,6 +78,39 @@ services:
 | `/app/content` | **Required / 必需**. Place `.mdx` and `.mdd` files here. Subdirectories supported. / 放置词典文件，支持子目录。 |
 | `/config` | Optional / 可选. Stores config and database (history/favorites). / 持久化配置和数据库。 |
 
+## Caching / 缓存
+
+MdictLive caches dictionary lookups in memory (LRU, zero config). For heavy usage, you can optionally connect a Valkey/Redis instance for a larger shared cache.
+
+MdictLive 默认使用内存 LRU 缓存词典查询（零配置）。重度使用可选配 Valkey/Redis 实例。
+
+| Env Var / 环境变量 | Default / 默认值 | Description / 说明 |
+|---|---|---|
+| `CACHE_SIZE` | `4096` | Max entries in the in-memory LRU cache. / 内存 LRU 缓存最大条目数。 |
+| `REDIS_URL` | _(empty)_ | Optional. Valkey/Redis URL to enable external cache. / 可选，设置后启用外部缓存。 |
+
+**With Valkey (docker-compose example):**
+
+```yaml
+services:
+  mdict-live:
+    image: tardivo/mdict-live:latest
+    ports:
+      - "5248:5248"
+    volumes:
+      - ./library:/app/content
+    environment:
+      - REDIS_URL=redis://valkey:6379/0
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    command: valkey-server --maxmemory 200mb --maxmemory-policy allkeys-lru --save ""
+```
+
+When `REDIS_URL` is not set, the app uses an in-memory LRU cache — no extra containers needed.
+
+未设置 `REDIS_URL` 时，应用使用内存 LRU 缓存，无需额外容器。
+
 ## Unraid
 
 Use the XML template [`mdict-live.xml`](https://github.com/nxxxsooo/mdict-live/blob/main/mdict-live.xml) — place it in `/boot/config/plugins/dockerman/templates-user/` and import via Docker tab. See the [Landing Page](https://mjshao.fun/mdict-live) for detailed guide.

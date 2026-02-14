@@ -22,7 +22,8 @@ RUN sed -i '/translators/d' requirements.txt
 # Install build dependencies for python-lzo
 RUN apk add --no-cache lzo-dev build-base
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir valkey
 
 # Copy built SPA from stage 1
 # app.py resolves SPA at ../website/dist relative to flask-mdict dir

@@ -8,7 +8,7 @@ import sqlite3
 
 from flask import Blueprint, jsonify, request, abort, make_response, send_file, url_for
 
-from . import get_mdict, get_db, Config
+from . import get_mdict, get_db, get_cache, Config
 from . import helper
 
 
@@ -65,6 +65,14 @@ def lookup_word(uuid, word):
     if not item:
         abort(404)
 
+    # Cache check: per-dict lookup
+    cache = get_cache()
+    cache_key = "l:%s:%s" % (uuid[:8], word.lower())
+    if cache:
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return jsonify(cached)
+
     q = item["query"]
     if item["type"] == "app":
         records = q(word, item)
@@ -79,7 +87,8 @@ def lookup_word(uuid, word):
                 records[idx] = "\n\n".join(link_records)
 
     if not records:
-        return jsonify({"word": word, "uuid": uuid, "found": False, "html": ""})
+        result = {"word": word, "uuid": uuid, "found": False, "html": ""}
+        return jsonify(result)
 
     # Build resource URL prefix for this dict
     prefix_resource = url_for("mdict.query_resource", uuid=uuid, resource="")
@@ -128,21 +137,35 @@ def lookup_word(uuid, word):
         html_parts
     )
 
-    return jsonify(
-        {
-            "word": word,
-            "uuid": uuid,
-            "title": item["title"],
-            "found": True,
-            "html": html_content,
-        }
-    )
+    result = {
+        "word": word,
+        "uuid": uuid,
+        "title": item["title"],
+        "found": True,
+        "html": html_content,
+    }
+
+    if cache:
+        cache.set(cache_key, result)
+
+    return jsonify(result)
 
 
 @api.route("/lookup/<word>")
 def lookup_all(word):
     """Lookup a word across all enabled dictionaries."""
     word = word.strip()
+
+    # Cache check: aggregated lookup across all enabled dicts
+    cache = get_cache()
+    cache_key = "la:%s" % word.lower()
+    if cache:
+        cached = cache.get(cache_key)
+        if cached is not None:
+            # Still record history on cache hit
+            helper.add_history(word)
+            return jsonify(cached)
+
     results = []
 
     for uuid, item in get_mdict().items():
@@ -226,20 +249,33 @@ def lookup_all(word):
     if results:
         helper.add_history(word)
 
-    return jsonify(
-        {
-            "word": word,
-            "results": results,
-            "total": len(results),
-        }
-    )
+    response_data = {
+        "word": word,
+        "results": results,
+        "total": len(results),
+    }
+
+    # Cache the response (only if there were results)
+    if cache and results:
+        cache.set(cache_key, response_data)
+
+    return jsonify(response_data)
 
 
 @api.route("/suggest/<query>")
 def suggest(query):
     """Autocomplete suggestions across all enabled dictionaries."""
-    contents = set()
     limit = request.args.get("limit", 20, type=int)
+
+    # Cache check: suggestions by prefix
+    cache = get_cache()
+    cache_key = "s:%s:%d" % (query.lower(), limit)
+    if cache:
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return jsonify(cached)
+
+    contents = set()
     for uuid, item in get_mdict().items():
         if item["type"] == "app":
             continue
@@ -249,6 +285,10 @@ def suggest(query):
             if len(contents) >= limit * 3:
                 break
     suggestions = sorted(contents)[:limit]
+
+    if cache:
+        cache.set(cache_key, suggestions, ttl=3600)
+
     return jsonify(suggestions)
 
 
@@ -281,6 +321,14 @@ def clear_history():
 @api.route("/meta/<word>")
 def word_meta(word):
     """Get word metadata (frequency, tags, etc.) as structured data."""
+    # Cache check: word frequency metadata (static data)
+    cache = get_cache()
+    cache_key = "m:%s" % word.lower()
+    if cache:
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return jsonify(cached)
+
     db = get_db("wfd_db")
     if not db:
         return jsonify({"error": "Word Frequency Database not found"})
@@ -289,7 +337,10 @@ def word_meta(word):
     cursor = db.execute(sql, (word.lower(),))
     row = next(cursor, None)
     if not row:
-        return jsonify({"word": word, "found": False})
+        result = {"word": word, "found": False}
+        if cache:
+            cache.set(cache_key, result)
+        return jsonify(result)
 
     row = dict(row)
     EXCHANGE = {
@@ -312,21 +363,24 @@ def word_meta(word):
 
     tags = row.get("tag", "").split() if row.get("tag") else []
 
-    return jsonify(
-        {
-            "word": word,
-            "found": True,
-            "phonetic": row.get("phonetic", ""),
-            "definition": row.get("definition", ""),
-            "translation": row.get("translation", ""),
-            "oxford": bool(row.get("oxford")),
-            "collins": int(row["collins"]) if row.get("collins") else 0,
-            "tags": tags,
-            "bnc": row.get("bnc"),
-            "frq": row.get("frq"),
-            "exchanges": exchanges,
-        }
-    )
+    result = {
+        "word": word,
+        "found": True,
+        "phonetic": row.get("phonetic", ""),
+        "definition": row.get("definition", ""),
+        "translation": row.get("translation", ""),
+        "oxford": bool(row.get("oxford")),
+        "collins": int(row["collins"]) if row.get("collins") else 0,
+        "tags": tags,
+        "bnc": row.get("bnc"),
+        "frq": row.get("frq"),
+        "exchanges": exchanges,
+    }
+
+    if cache:
+        cache.set(cache_key, result)
+
+    return jsonify(result)
 
 
 @api.route("/dicts/<uuid>/toggle", methods=["POST"])
@@ -337,6 +391,12 @@ def toggle_dict(uuid):
         abort(404)
     item["enable"] = not item["enable"]
     helper.mdict_enable(uuid, item["enable"])
+
+    # Invalidate lookup_all cache (depends on which dicts are enabled)
+    cache = get_cache()
+    if cache:
+        cache.delete_prefix("la:")
+
     return jsonify({"uuid": uuid, "enabled": item["enable"]})
 
 
@@ -432,3 +492,21 @@ def check_word_in_wordbooks():
         "SELECT wordbook_id, id FROM wordbook_entry WHERE word = ?", (word,)
     ).fetchall()
     return jsonify([dict(row) for row in rows])
+
+
+@api.route("/cache/info")
+def cache_info():
+    """Get cache backend info and stats."""
+    cache = get_cache()
+    if not cache:
+        return jsonify({"backend": "none"})
+    return jsonify(cache.info())
+
+
+@api.route("/cache/clear", methods=["POST"])
+def cache_clear():
+    """Clear all cached data."""
+    cache = get_cache()
+    if cache:
+        cache.clear()
+    return jsonify({"ok": True})
