@@ -3,29 +3,42 @@
   <Name>mdict-live</Name>
   <Repository>tardivo/mdict-live</Repository>
   <Registry>https://hub.docker.com/r/tardivo/mdict-live</Registry>
-  <Network>bridge</Network>
+  <Network>kranet</Network>
   <MyIP/>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
   <Support>https://github.com/nxxxsooo/mdict-live/issues</Support>
   <Project>https://github.com/nxxxsooo/mdict-live</Project>
-  <Overview>MdictLive is a modern web-based MDict dictionary viewer with a React 19 SPA frontend. Look up words across multiple dictionaries simultaneously with instant search, dark mode, word frequency data, and a responsive design that preserves authentic dictionary styling.&#xD;
+  <Overview>MdictLive v2 is a private, self-hosted MDict reading workspace and evidence service. It combines a React browser client, bearer-protected v2 API, stable citations, standalone CLI, and read-only Pi agent tools.&#xD;
 &#xD;
 Features:&#xD;
-- React 19 SPA with dark mode, sidebar, wordbook&#xD;
-- Supports MDict dictionaries (.mdx/.mdd)&#xD;
-- Multi-dictionary simultaneous lookup&#xD;
-- Word frequency database (COCA/BNC)&#xD;
+- Safe native dictionary presentation with source CSS and inert source scripts&#xD;
+- Read-only existing /mnt/user/media/Dicts corpus&#xD;
+- Separate persistent application data and generated indexes&#xD;
+- Secret-file token and readiness health check&#xD;
 - Multi-arch: amd64 and arm64&#xD;
 &#xD;
+Keep the whole origin on a trusted LAN/VPN or private authenticated reverse proxy because legacy compatibility routes remain unauthenticated.&#xD;
 Homepage: https://mjshao.fun/mdict-live</Overview>
   <Category>Productivity: Tools:Utilities</Category>
-  <WebUI>http://[IP]:[PORT:5248]/</WebUI>
+  <WebUI>http://[IP]:[PORT:5248]/app/</WebUI>
   <Icon>https://raw.githubusercontent.com/nxxxsooo/mdict-live/main/logo.png</Icon>
   <Config Name="Web UI Port" Target="5248" Default="5248" Mode="tcp" Description="The port for the web interface." Type="Port" Display="always" Required="true" Mask="false">5248</Config>
-  <Config Name="Dictionary Library" Target="/app/content" Default="/mnt/user/appdata/mdict-live/library" Mode="rw" Description="Directory containing .mdx and .mdd dictionary files." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/mdict-live/library</Config>
-  <Config Name="Configuration" Target="/config" Default="/mnt/user/appdata/mdict-live" Mode="rw" Description="Directory for flask_mdict.json configuration file." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/mdict-live</Config>
-  <Config Name="Run Command" Target="COMMAND" Default="" Mode="" Description="Override default command to use the external config file" Type="Variable" Display="advanced" Required="false" Mask="false">python app.py --config-file /config/flask_mdict.json</Config>
+  <ExtraParams>--read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m</ExtraParams>
+  <Config Name="Dictionary Library" Target="/library" Default="/mnt/user/media/Dicts" Mode="ro" Description="Existing MDX/MDD corpus. Mounted read-only; MdictLive never writes indexes here." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/media/Dicts</Config>
+  <Config Name="Application Data" Target="/data" Default="/mnt/user/appdata/mdict-live/data" Mode="rw" Description="Persistent history, wordbooks, settings, source registry, and migration state." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/mdict-live/data</Config>
+  <Config Name="Generated Indexes" Target="/data/index" Default="/mnt/user/appdata/mdict-live/index" Mode="rw" Description="Writable disposable MDX/MDD indexes, separate from the corpus." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/mdict-live/index</Config>
+  <Config Name="Configuration" Target="/config" Default="/mnt/user/appdata/mdict-live/config" Mode="rw" Description="Non-secret service configuration." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/mdict-live/config</Config>
+  <Config Name="Bearer Token File" Target="/run/secrets/mdict_live_token" Default="/mnt/user/appdata/mdict-live/secrets/token" Mode="ro" Description="Protected file containing a random token of at least 32 bytes. Store the value outside this XML and make the host file readable only by container UID/GID 1000:1000 (recommended mode 0400)." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/mdict-live/secrets/token</Config>
+  <Config Name="Enable Private v2 API" Target="MDICT_V2_ENABLED" Default="true" Mode="" Description="Fail closed unless the token file is readable." Type="Variable" Display="advanced" Required="true" Mask="false">true</Config>
+  <Config Name="Library Directory" Target="MDICT_LIBRARY_DIR" Default="/library" Mode="" Description="Container library path." Type="Variable" Display="advanced" Required="true" Mask="false">/library</Config>
+  <Config Name="Data Directory" Target="MDICT_DATA_DIR" Default="/data" Mode="" Description="Container application-data path." Type="Variable" Display="advanced" Required="true" Mask="false">/data</Config>
+  <Config Name="Index Directory" Target="MDICT_INDEX_DIR" Default="/data/index" Mode="" Description="Container generated-index path." Type="Variable" Display="advanced" Required="true" Mask="false">/data/index</Config>
+  <Config Name="Config Directory" Target="MDICT_CONFIG_DIR" Default="/config" Mode="" Description="Container configuration path." Type="Variable" Display="advanced" Required="true" Mask="false">/config</Config>
+  <Config Name="Token File Setting" Target="MDICT_LIVE_TOKEN_FILE" Default="/run/secrets/mdict_live_token" Mode="" Description="Container token-file location." Type="Variable" Display="advanced" Required="true" Mask="false">/run/secrets/mdict_live_token</Config>
+  <Config Name="Trusted Proxy Hops" Target="MDICT_TRUSTED_PROXY_HOPS" Default="1" Mode="" Description="Trust one forwarding hop only when the immediate peer is in Trusted Proxy CIDRs. Set 0 for direct-only access." Type="Variable" Display="always" Required="true" Mask="false">1</Config>
+  <Config Name="Trusted Proxy CIDRs" Target="MDICT_TRUSTED_PROXY_CIDRS" Default="172.16.0.0/12" Mode="" Description="Docker bridge range allowed to supply forwarded headers, suitable for NPM on kranet." Type="Variable" Display="always" Required="true" Mask="false">172.16.0.0/12</Config>
+  <Config Name="Allowed Browser Origins" Target="MDICT_CORS_ORIGINS" Default="" Mode="" Description="Optional exact comma-separated browser origins. Same-origin workspace access needs no value." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
   <Config Name="Redis/Valkey URL" Target="REDIS_URL" Default="" Mode="" Description="Optional. Connect to a Valkey/Redis instance for persistent cache (e.g. redis://valkey:6379/0). Leave empty to use built-in memory cache." Type="Variable" Display="always" Required="false" Mask="false"></Config>
   <Config Name="Cache Size" Target="CACHE_SIZE" Default="4096" Mode="" Description="Max entries for the built-in memory cache (only used when Redis URL is empty). Default: 4096." Type="Variable" Display="advanced" Required="false" Mask="false">4096</Config>
 </Container>

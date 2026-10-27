@@ -1,0 +1,35 @@
+{
+  "name": "@mdict-live/pi-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Read-only source-cited MdictLive tools and language-research skill for Pi",
+  "type": "module",
+  "keywords": ["pi-package", "dictionary", "lexicography"],
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "pi": {
+    "extensions": ["./extensions/mdict-live.ts"],
+    "skills": ["./skills"]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "overrides": {
+    "@earendil-works/pi-coding-agent": {
+      "undici": "^8.11.2"
+    }
+  },
+  "devDependencies": {
+    "@earendil-works/pi-ai": "^0.83.0",
+    "@earendil-works/pi-coding-agent": "^0.83.0",
+    "@types/node": "^24.12.4",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.9"
+  }
+}

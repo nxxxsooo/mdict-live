@@ -1,0 +1,26 @@
+{
+  "api_version": "2.0",
+  "request_id": "req_discovery_001",
+  "data": {
+    "api_version": "2.0",
+    "links": {
+      "self": "/api/v2",
+      "status": "/api/v2/status",
+      "sources": "/api/v2/sources",
+      "lookup": "/api/v2/lookup",
+      "suggestions": "/api/v2/suggestions",
+      "metadata": "/api/v2/metadata"
+    },
+    "limits": {
+      "query_characters": 256,
+      "selected_sources": 32,
+      "returned_entries": 50,
+      "text_response_bytes": 65536,
+      "text_entry_bytes": 24576,
+      "html_response_bytes": 4194304,
+      "suggestions_default": 20,
+      "suggestions_maximum": 100,
+      "agent_evidence_bytes": 32768
+    }
+  }
+}

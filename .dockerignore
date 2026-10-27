@@ -25,4 +25,18 @@ my-flask-mdict.xml
 # Exclude frontend build artifacts and dependencies
 website/node_modules
 website/dist
+website/e2e
+website/test-results
+website/playwright.config.ts
+website/vitest.config.ts
+flask-mdict/tests
+flask-mdict/.pytest_cache
+cli
+pi-package
+openspec
+docs
+.agent
+.opencode
+.pi
+.playwright-cli
 .env

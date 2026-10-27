@@ -10,6 +10,11 @@ from importlib import import_module
 
 from flask import url_for
 
+from artifact_storage import (
+    adopt_legacy_index_files,
+    persist_description,
+    resolve_source_artifact_paths,
+)
 from . import Config, get_db
 from .dbdict_query import DBDict
 from .mdict_query2 import IndexBuilder2
@@ -145,45 +150,6 @@ def query_word_meta(word):
     return " ".join(word_meta)
 
 
-def init_flask_mdict():
-    db_name = Config.DB_NAMES.get("app_db")
-    db = sqlite3.connect(db_name)
-    c = db.cursor()
-    # history
-    sql = 'SELECT name FROM sqlite_master WHERE type="table" AND name="history";'
-    row = c.execute(sql).fetchone()
-    if not row:
-        sql = "CREATE TABLE history(word TEXT PRIMARY KEY, count INT, last_time DATETIME);"
-        db.execute(sql)
-        db.commit()
-    # mdict setting
-    sql = 'SELECT name FROM sqlite_master WHERE type="table" AND name="setting";'
-    row = c.execute(sql).fetchone()
-    if not row:
-        sql = "CREATE TABLE setting(name TEXT PRIMARY KEY, value TEXT);"
-        db.execute(sql)
-        db.commit()
-
-    # wordbook
-    sql = "CREATE TABLE IF NOT EXISTS wordbook(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);"
-    db.execute(sql)
-
-    # wordbook_entry
-    sql = "CREATE TABLE IF NOT EXISTS wordbook_entry(id INTEGER PRIMARY KEY AUTOINCREMENT, wordbook_id INTEGER NOT NULL, word TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(wordbook_id) REFERENCES wordbook(id) ON DELETE CASCADE);"
-    db.execute(sql)
-
-    # Indexes
-    db.execute(
-        "CREATE INDEX IF NOT EXISTS idx_wordbook_entry_word ON wordbook_entry(word);"
-    )
-    db.execute(
-        "CREATE UNIQUE INDEX IF NOT EXISTS idx_wordbook_entry_unique ON wordbook_entry(wordbook_id, word);"
-    )
-    db.commit()
-
-    db.close()
-
-
 def mdict_enable(uuid, value=None):
     db = get_db("app_db")
     if not db:
@@ -256,7 +222,7 @@ def export_history(sio):
     return sio
 
 
-def init_mdict(mdict_dir, index_dir=None):
+def init_mdict(mdict_dir, index_dir=None, description_dir=None):
     mdicts = {}
     db_names = {}
     mdict_setting = {}
@@ -300,6 +266,8 @@ def init_mdict(mdict_dir, index_dir=None):
                     "logo": logo,
                     "about": d.about(),
                     "root_path": root,
+                    "source_path": db_file,
+                    "database_path": db_file,
                     "query": d,
                     "cache": {},
                     "type": "mdict_db",
@@ -323,13 +291,32 @@ def init_mdict(mdict_dir, index_dir=None):
                     % (name, dict_uuid, "Enable" if enable else "Disable")
                 )
 
-                if index_dir:
-                    mdict_index_dir = os.path.join(index_dir, dict_uuid)
-                    if not os.path.exists(mdict_index_dir):
-                        os.makedirs(mdict_index_dir)
-                else:
-                    mdict_index_dir = None
-                idx = IndexBuilder2(mdx_file, index_dir=mdict_index_dir)
+                artifact_paths = resolve_source_artifact_paths(
+                    source_root=root,
+                    source_name=name,
+                    source_uuid=dict_uuid,
+                    index_root=index_dir,
+                    description_root=description_dir,
+                )
+                if artifact_paths.index_dir is not None:
+                    artifact_paths.index_dir.mkdir(parents=True, exist_ok=True)
+                    index_adoption = adopt_legacy_index_files(
+                        mdx_file, artifact_paths.index_dir
+                    )
+                    if index_adoption.rejected:
+                        logger.warning(
+                            "Rejected reusable legacy indexes for %s: %s",
+                            name,
+                            ", ".join(index_adoption.rejected),
+                        )
+                idx = IndexBuilder2(
+                    mdx_file,
+                    index_dir=(
+                        os.fspath(artifact_paths.index_dir)
+                        if artifact_paths.index_dir is not None
+                        else None
+                    ),
+                )
                 if not idx._title or idx._title == "Title (No HTML code allowed)":
                     title = name
                 else:
@@ -351,10 +338,7 @@ def init_mdict(mdict_dir, index_dir=None):
                     text = ""
                 else:
                     text = fix_html(idx._description)
-                about_html = os.path.join(root, "about_%s.html" % name)
-                if not os.path.exists(about_html):
-                    with open(about_html, "wt", encoding="utf-8") as f:
-                        f.write(text)
+                persist_description(artifact_paths.description_file, text)
                 if False:
                     text = regex_style.sub("", text)
                     text = regex_ln.sub("\n", text)
@@ -370,6 +354,8 @@ def init_mdict(mdict_dir, index_dir=None):
                     "logo": logo,
                     "about": about,
                     "root_path": root,
+                    "source_path": mdx_file,
+                    "database_path": None,
                     "query": idx,
                     "cache": {},
                     "type": "mdict",

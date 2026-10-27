@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "python3 -m pytest",
     "build:css": "tailwindcss -i ./flask_mdict/static/src/input.css -o ./flask_mdict/static/css/main.css --minify",
     "watch:css": "tailwindcss -i ./flask_mdict/static/src/input.css -o ./flask_mdict/static/css/main.css --watch"
   },

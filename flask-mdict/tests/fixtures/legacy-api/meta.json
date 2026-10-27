@@ -1,0 +1,19 @@
+{
+  "bnc": 123,
+  "collins": 3,
+  "definition": "correct or suitable",
+  "exchanges": {
+    "past_tense": "righted",
+    "third_person": "rights"
+  },
+  "found": true,
+  "frq": 492,
+  "oxford": true,
+  "phonetic": "raɪt",
+  "tags": [
+    "cet4",
+    "core"
+  ],
+  "translation": "正确的；合适的",
+  "word": "right"
+}

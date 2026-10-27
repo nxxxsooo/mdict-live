@@ -1,0 +1,2 @@
+[console_scripts]
+mdict-live = mdict_live_cli.main:entrypoint

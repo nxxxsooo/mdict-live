@@ -1,127 +1,90 @@
-import { X, Moon, Sun } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { KeyRound, Moon, Sun, X } from 'lucide-react'
+import { getV2Token, setV2Token, type WorkspaceSource } from '@/api/workspace'
+import { useRefreshWorkspace, useUpdateWorkspaceSource } from '@/hooks/useWorkspace'
 import { useAppStore } from '@/stores/useAppStore'
-import { useDicts, useToggleDict } from '@/hooks/useDict'
 
-export function SettingsPanel() {
-  const isOpen = useAppStore((s) => s.settingsOpen)
-  const setOpen = useAppStore((s) => s.setSettingsOpen)
-  const darkMode = useAppStore((s) => s.darkMode)
-  const toggleDarkMode = useAppStore((s) => s.toggleDarkMode)
+interface SettingsPanelProps {
+  sources: WorkspaceSource[]
+  returnFocusRef: React.RefObject<HTMLButtonElement | null>
+}
 
-  const { data: dicts = [] } = useDicts()
-  const toggleDict = useToggleDict()
-  const realDicts = dicts.filter((d) => d.type !== 'app')
+export function SettingsPanel({ sources, returnFocusRef }: SettingsPanelProps) {
+  const open = useAppStore((state) => state.settingsOpen)
+  const setOpen = useAppStore((state) => state.setSettingsOpen)
+  const darkMode = useAppStore((state) => state.darkMode)
+  const toggleDarkMode = useAppStore((state) => state.toggleDarkMode)
+  const [token, setToken] = useState(getV2Token())
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  const updateSource = useUpdateWorkspaceSource()
+  const refreshWorkspace = useRefreshWorkspace()
+
+  useEffect(() => {
+    if (open) {
+      setToken(getV2Token())
+      dialogRef.current?.showModal()
+      closeButtonRef.current?.focus()
+    }
+  }, [open])
+
+  if (!open) return null
+  const close = () => {
+    setOpen(false)
+    window.setTimeout(() => returnFocusRef.current?.focus(), 0)
+  }
+  const saveToken = () => {
+    setV2Token(token)
+    refreshWorkspace()
+  }
 
   return (
-    <>
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 z-40 transition-opacity"
-          onClick={() => setOpen(false)}
-        />
-      )}
-      <div
-        className={`fixed top-0 right-0 z-50 h-screen w-80 bg-white dark:bg-slate-900 border-l border-gray-200 dark:border-slate-800 shadow-xl transform transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+      <dialog
+        ref={dialogRef}
+        className="settings-drawer"
+        aria-label="Workspace settings"
+        onCancel={(event) => { event.preventDefault(); close() }}
+        onClose={close}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-800">
-          <h2 className="font-semibold text-lg text-slate-800 dark:text-slate-100">Settings</h2>
-          <button
-            onClick={() => setOpen(false)}
-            className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-slate-400 transition-colors"
-          >
-            <X size={20} />
+        <header>
+          <div><span className="eyebrow">Workspace</span><h2>Settings</h2></div>
+          <button ref={closeButtonRef} className="icon-button" aria-label="Close settings" onClick={close}><X size={18} /></button>
+        </header>
+        <section className="settings-section">
+          <h3>Appearance</h3>
+          <button className="setting-row" onClick={toggleDarkMode}>
+            <span>{darkMode ? <Moon size={17} /> : <Sun size={17} />} Dark workspace</span>
+            <span className={`switch ${darkMode ? 'is-on' : ''}`} aria-hidden="true"><i /></span>
           </button>
-        </div>
-
-        <div className="p-4 space-y-6">
-          {/* Appearance */}
-          <section>
-            <h3 className="text-sm font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-              Appearance
-            </h3>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200">
-                {darkMode ? <Moon size={18} /> : <Sun size={18} />}
-                <span>Dark Mode</span>
-              </div>
+          <p>Native dictionary documents keep their own source colors.</p>
+        </section>
+        <section className="settings-section">
+          <h3>Private v2 connection</h3>
+          <label className="token-field">
+            <span><KeyRound size={15} /> Session token</span>
+            <input type="password" value={token} onChange={(event) => setToken(event.target.value)} autoComplete="off" />
+          </label>
+          <div className="button-row">
+            <button className="primary-button" onClick={saveToken}>Use v2</button>
+            <button className="secondary-button" onClick={() => { setToken(''); setV2Token(''); refreshWorkspace() }}>Use legacy fallback</button>
+          </div>
+          <p>The token stays in this browser tab’s session storage and is never forwarded into dictionary frames.</p>
+        </section>
+        <section className="settings-section">
+          <h3>Sources</h3>
+          <div className="settings-source-list">
+            {sources.map((source) => (
               <button
-                onClick={toggleDarkMode}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  darkMode ? 'bg-blue-600' : 'bg-gray-200 dark:bg-slate-700'
-                }`}
+                key={source.id}
+                className="setting-row"
+                onClick={() => updateSource.mutate({ sourceId: source.id, enabled: !source.enabled })}
               >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    darkMode ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
+                <span><span className="source-glyph small">{source.title.slice(0, 1)}</span>{source.title}</span>
+                <span className={`switch ${source.enabled ? 'is-on' : ''}`} aria-hidden="true"><i /></span>
               </button>
-            </div>
-            <p className="mt-2 text-xs text-gray-400 dark:text-slate-500">
-              Switch between light and dark themes. (Shortcut: Ctrl+Shift+D)
-            </p>
-          </section>
-
-          {/* Dictionaries */}
-          <section>
-            <h3 className="text-sm font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-              Dictionaries
-            </h3>
-            <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-1">
-              {realDicts.map((dict) => (
-                <div key={dict.uuid} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 truncate pr-2 min-w-0">
-                    <img
-                      src={dict.logo}
-                      alt=""
-                      className="w-4 h-4 rounded flex-shrink-0"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                    />
-                    <span
-                      className={`text-sm truncate transition-colors ${
-                        dict.enabled ? 'text-gray-900 dark:text-slate-200' : 'text-gray-400 dark:text-slate-500'
-                      }`}
-                      title={dict.title}
-                    >
-                      {dict.title}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => toggleDict.mutate(dict.uuid)}
-                    className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-                      dict.enabled ? 'bg-blue-500' : 'bg-gray-300 dark:bg-slate-700'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
-                        dict.enabled ? 'translate-x-4.5' : 'translate-x-0.5'
-                      }`}
-                    />
-                  </button>
-                </div>
-              ))}
-              {realDicts.length === 0 && (
-                <div className="text-sm text-gray-400 dark:text-slate-500 text-center py-4">
-                  No dictionaries found
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* About */}
-          <section>
-            <h3 className="text-sm font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-              About
-            </h3>
-            <div className="text-sm text-gray-600 dark:text-slate-300">
-              <p className="font-medium">Flask MDict</p>
-              <p className="text-xs text-gray-400 mt-1">React SPA Refinement</p>
-            </div>
-          </section>
-        </div>
-      </div>
-    </>
+            ))}
+          </div>
+        </section>
+      </dialog>
   )
 }

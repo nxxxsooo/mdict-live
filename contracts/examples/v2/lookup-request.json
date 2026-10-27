@@ -1,0 +1,7 @@
+{
+  "query": " right ",
+  "source_ids": ["src_fixture_primary", "src_fixture_secondary"],
+  "representations": ["html", "text"],
+  "limit": 10,
+  "record_history": false
+}

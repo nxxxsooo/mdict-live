@@ -1,0 +1,22 @@
+{
+  "api_version": "2.0",
+  "request_id": "req_suggestions_001",
+  "data": {
+    "prefix": "rig",
+    "suggestions": [
+      {
+        "headword": "right",
+        "source_ids": ["src_fixture_primary"],
+        "kind": "prefix"
+      },
+      {
+        "headword": "right-hand",
+        "source_ids": ["src_fixture_primary", "src_fixture_secondary"],
+        "kind": "prefix"
+      }
+    ],
+    "fuzzy": false,
+    "limit": 20,
+    "truncated": false
+  }
+}

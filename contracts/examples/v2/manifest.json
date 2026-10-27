@@ -1,0 +1,15 @@
+[
+  {"file": "citation-response.json", "schema": "CitationResponse"},
+  {"file": "discovery-response.json", "schema": "DiscoveryResponse"},
+  {"file": "error-response.json", "schema": "ErrorEnvelope"},
+  {"file": "liveness-response.json", "schema": "LivenessResponse"},
+  {"file": "lookup-request.json", "schema": "LookupRequest"},
+  {"file": "lookup-response.json", "schema": "LookupResponse"},
+  {"file": "metadata-response.json", "schema": "MetadataResponse"},
+  {"file": "readiness-response.json", "schema": "ReadinessResponse"},
+  {"file": "source-list-response.json", "schema": "SourceListResponse"},
+  {"file": "source-update-request.json", "schema": "SourceUpdateRequest"},
+  {"file": "source-update-response.json", "schema": "SourceUpdateResponse"},
+  {"file": "status-response.json", "schema": "StatusResponse"},
+  {"file": "suggestion-response.json", "schema": "SuggestionResponse"}
+]

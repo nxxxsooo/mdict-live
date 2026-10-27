@@ -6,8 +6,18 @@ import os.path
 import datetime
 import sqlite3
 
-from flask import Blueprint, jsonify, request, abort, make_response, send_file, url_for
+from flask import (
+    Blueprint,
+    abort,
+    current_app,
+    jsonify,
+    make_response,
+    request,
+    send_file,
+    url_for,
+)
 
+from legacy_rendering import render_legacy_records, resolve_legacy_links
 from . import get_mdict, get_db, get_cache, Config
 from . import helper
 
@@ -24,6 +34,65 @@ regex_href_no_schema = re.compile(
 )
 regex_css = re.compile(r'(<link.*? )(href)(=".+?>)')
 regex_js = re.compile(r'(<script.*? )(src)(=".+?>)')
+
+
+def _v2_dependencies():
+    return current_app.extensions.get("mdict_v2_dependencies")
+
+
+def _shared_source(uuid):
+    dependencies = _v2_dependencies()
+    if dependencies is None:
+        return None, None
+    source_id = dependencies.legacy_source_ids.get(uuid)
+    if source_id is None:
+        return dependencies, None
+    return dependencies, dependencies.catalog.adapter(source_id)
+
+
+def _lookup_records(uuid, item, word):
+    _dependencies, adapter = _shared_source(uuid)
+    if adapter is not None:
+        return [record.html for record in adapter.lookup(word)], lambda target: [
+            record.html for record in adapter.lookup(target)
+        ]
+    query = item["query"]
+    if item["type"] == "app":
+        return list(query(word, item)), lambda target: list(query(target, item))
+
+    def lookup(target):
+        return list(query.mdx_lookup(get_db(uuid), target, ignorecase=True))
+
+    return lookup(word), lookup
+
+
+def _legacy_html(records, link_lookup, uuid):
+    resolved = resolve_legacy_links(records, link_lookup)
+    prefix_resource = url_for("mdict.query_resource", uuid=uuid, resource="")
+    reset_css_url = url_for(
+        "mdict.query_resource", uuid=uuid, resource="css/reset.css"
+    )
+    return render_legacy_records(
+        resolved,
+        prefix_resource=prefix_resource,
+        reset_css_url=reset_css_url,
+        fix_html=helper.fix_html,
+    )
+
+
+def _shared_source_record(uuid):
+    dependencies = _v2_dependencies()
+    if dependencies is None:
+        return None
+    source_id = dependencies.legacy_source_ids.get(uuid)
+    return next(
+        (
+            source
+            for source in dependencies.catalog.list_sources()
+            if source.source_id == source_id
+        ),
+        None,
+    )
 
 
 @api.after_request
@@ -43,6 +112,7 @@ def list_dicts():
     """List all loaded dictionaries with metadata."""
     dicts = []
     for uuid, item in get_mdict().items():
+        shared_source = _shared_source_record(uuid)
         dicts.append(
             {
                 "uuid": uuid,
@@ -51,7 +121,9 @@ def list_dicts():
                     "mdict.query_resource", uuid=uuid, resource=item["logo"]
                 ),
                 "type": item["type"],
-                "enabled": item["enable"],
+                "enabled": (
+                    shared_source.enabled if shared_source is not None else item["enable"]
+                ),
             }
         )
     return jsonify(dicts)
@@ -73,69 +145,13 @@ def lookup_word(uuid, word):
         if cached is not None:
             return jsonify(cached)
 
-    q = item["query"]
-    if item["type"] == "app":
-        records = q(word, item)
-    else:
-        records = q.mdx_lookup(get_db(uuid), word, ignorecase=True)
-        # resolve @@@LINK references
-        for idx, record in enumerate(records):
-            mo = regex_word_link.match(record)
-            if mo:
-                link = mo.group(2).strip()
-                link_records = q.mdx_lookup(get_db(uuid), link, ignorecase=True)
-                records[idx] = "\n\n".join(link_records)
+    records, link_lookup = _lookup_records(uuid, item, word)
 
     if not records:
         result = {"word": word, "uuid": uuid, "found": False, "html": ""}
         return jsonify(result)
 
-    # Build resource URL prefix for this dict
-    prefix_resource = url_for("mdict.query_resource", uuid=uuid, resource="")
-
-    html_parts = []
-    count = 1
-    record_num = len(records)
-    for record in records:
-        if record.startswith("@@@LINK="):
-            record_num -= 1
-
-    for record in records:
-        record = helper.fix_html(record)
-        mo = regex_word_link.match(record)
-        if mo:
-            link = mo.group(2).strip()
-            html_parts.append(
-                f'<p>See also: <a href="entry://{link}" '
-                f'data-entry-word="{link}">{link}</a></p>'
-            )
-        else:
-            # Rewrite resource URLs to point to Flask backend
-            record = regex_src_schema.sub(r"\g<1>%s/\3" % prefix_resource, record)
-            record = regex_href_no_schema.sub(r"\g<1>%s/\2" % prefix_resource, record)
-            record = regex_href_end_slash.sub(r"\1\3", record)
-            # Mark sound/entry links with data attributes for JS handling
-            record = regex_href_schema_sound.sub(
-                r' data-sound-url="%s/\3" \1\2\3' % prefix_resource, record
-            )
-            record = regex_href_schema_entry.sub(
-                r' data-entry-word="\3" \1\2\3', record
-            )
-
-            # Keep first CSS, keep last JS
-            if count > 1:
-                record = regex_css.sub(r"\1data-\2\3", record)
-            if count < record_num:
-                record = regex_js.sub(r"\1data-\2\3", record)
-            count += 1
-
-        html_parts.append(record)
-
-    # Prepend reset CSS
-    reset_css_url = url_for("mdict.query_resource", uuid=uuid, resource="css/reset.css")
-    html_content = f'<link rel="stylesheet" href="{reset_css_url}">' + "<hr />".join(
-        html_parts
-    )
+    html_content = _legacy_html(records, link_lookup, uuid)
 
     result = {
         "word": word,
@@ -172,66 +188,12 @@ def lookup_all(word):
         if not item["enable"]:
             continue
 
-        q = item["query"]
-        if item["type"] == "app":
-            records = q(word, item)
-        else:
-            records = q.mdx_lookup(get_db(uuid), word, ignorecase=True)
-            for idx, record in enumerate(records):
-                mo = regex_word_link.match(record)
-                if mo:
-                    link = mo.group(2).strip()
-                    link_records = q.mdx_lookup(get_db(uuid), link, ignorecase=True)
-                    records[idx] = "\n\n".join(link_records)
+        records, link_lookup = _lookup_records(uuid, item, word)
 
         if not records:
             continue
 
-        prefix_resource = url_for("mdict.query_resource", uuid=uuid, resource="")
-
-        html_parts = []
-        count = 1
-        record_num = len(records)
-        for record in records:
-            if record.startswith("@@@LINK="):
-                record_num -= 1
-
-        for record in records:
-            record = helper.fix_html(record)
-            mo = regex_word_link.match(record)
-            if mo:
-                link = mo.group(2).strip()
-                html_parts.append(
-                    f'<p>See also: <a href="entry://{link}" '
-                    f'data-entry-word="{link}">{link}</a></p>'
-                )
-            else:
-                record = regex_src_schema.sub(r"\g<1>%s/\3" % prefix_resource, record)
-                record = regex_href_no_schema.sub(
-                    r"\g<1>%s/\2" % prefix_resource, record
-                )
-                record = regex_href_end_slash.sub(r"\1\3", record)
-                record = regex_href_schema_sound.sub(
-                    r' data-sound-url="%s/\3" \1\2\3' % prefix_resource, record
-                )
-                record = regex_href_schema_entry.sub(
-                    r' data-entry-word="\3" \1\2\3', record
-                )
-                if count > 1:
-                    record = regex_css.sub(r"\1data-\2\3", record)
-                if count < record_num:
-                    record = regex_js.sub(r"\1data-\2\3", record)
-                count += 1
-
-            html_parts.append(record)
-
-        reset_css_url = url_for(
-            "mdict.query_resource", uuid=uuid, resource="css/reset.css"
-        )
-        html_content = (
-            f'<link rel="stylesheet" href="{reset_css_url}">'
-            + "<hr />".join(html_parts)
-        )
+        html_content = _legacy_html(records, link_lookup, uuid)
 
         results.append(
             {
@@ -275,16 +237,21 @@ def suggest(query):
         if cached is not None:
             return jsonify(cached)
 
-    contents = set()
-    for uuid, item in get_mdict().items():
-        if item["type"] == "app":
-            continue
-        if item["enable"]:
-            content = item["query"].get_mdx_keys(get_db(uuid), query)
-            contents |= set(content)
-            if len(contents) >= limit * 3:
-                break
-    suggestions = sorted(contents)[:limit]
+    dependencies = _v2_dependencies()
+    if dependencies is not None and dependencies.legacy_source_ids:
+        result = dependencies.suggestion_service.suggest(query, limit=limit)
+        suggestions = [suggestion.headword for suggestion in result.suggestions]
+    else:
+        contents = set()
+        for uuid, item in get_mdict().items():
+            if item["type"] == "app":
+                continue
+            if item["enable"]:
+                content = item["query"].get_mdx_keys(get_db(uuid), query)
+                contents |= set(content)
+                if len(contents) >= limit * 3:
+                    break
+        suggestions = sorted(contents)[:limit]
 
     if cache:
         cache.set(cache_key, suggestions, ttl=3600)
@@ -328,6 +295,35 @@ def word_meta(word):
         cached = cache.get(cache_key)
         if cached is not None:
             return jsonify(cached)
+
+    dependencies = _v2_dependencies()
+    if dependencies is not None:
+        metadata = dependencies.metadata_service.lookup(word)
+        if not metadata.available:
+            return jsonify({"error": "Word Frequency Database not found"})
+        if not metadata.records:
+            result = {"word": word, "found": False}
+            if cache:
+                cache.set(cache_key, result)
+            return jsonify(result)
+        record = metadata.records[0]
+        legacy_fields = dict(record.legacy_fields)
+        result = {
+            "word": word,
+            "found": True,
+            "phonetic": record.phonetic or "",
+            "definition": record.definition or "",
+            "translation": record.translation or "",
+            "oxford": bool(legacy_fields.get("oxford")),
+            "collins": int(legacy_fields.get("collins") or 0),
+            "tags": list(record.tags),
+            "bnc": legacy_fields.get("bnc"),
+            "frq": legacy_fields.get("frq"),
+            "exchanges": dict(record.inflections),
+        }
+        if cache:
+            cache.set(cache_key, result)
+        return jsonify(result)
 
     db = get_db("wfd_db")
     if not db:
@@ -390,6 +386,11 @@ def toggle_dict(uuid):
     if not item:
         abort(404)
     item["enable"] = not item["enable"]
+    dependencies = _v2_dependencies()
+    if dependencies is not None:
+        source_id = dependencies.legacy_source_ids.get(uuid)
+        if source_id is not None and dependencies.source_updater is not None:
+            dependencies.source_updater(source_id, item["enable"], None)
     helper.mdict_enable(uuid, item["enable"])
 
     # Invalidate lookup_all cache (depends on which dicts are enabled)

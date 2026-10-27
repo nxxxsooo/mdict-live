@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-07-31
+goal: Make the existing MDict corpus safely and consistently usable by humans,
+  command-line clients, and optional agents without coupling the core service to
+  any model runtime.

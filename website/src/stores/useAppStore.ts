@@ -28,6 +28,7 @@ interface AppState {
   darkMode: boolean
   activeSidebarTab: 'dicts' | 'history' | 'wordbook'
   settingsOpen: boolean
+  contextOpen: boolean
   setSearchWord: (word: string) => void
   setActiveDict: (uuid: string) => void
   setSidebarOpen: (open: boolean) => void
@@ -35,6 +36,7 @@ interface AppState {
   toggleDarkMode: () => void
   setActiveSidebarTab: (tab: 'dicts' | 'history' | 'wordbook') => void
   setSettingsOpen: (open: boolean) => void
+  setContextOpen: (open: boolean) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -45,6 +47,7 @@ export const useAppStore = create<AppState>((set) => ({
   darkMode: localStorage.getItem('darkMode') === 'true',
   activeSidebarTab: 'dicts',
   settingsOpen: false,
+  contextOpen: false,
   setSearchWord: (word) => set({ searchWord: word }),
   setActiveDict: (uuid) => set({ activeDict: uuid }),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
@@ -60,6 +63,7 @@ export const useAppStore = create<AppState>((set) => ({
   }),
   setActiveSidebarTab: (tab) => set({ activeSidebarTab: tab }),
   setSettingsOpen: (open) => set({ settingsOpen: open }),
+  setContextOpen: (open) => set({ contextOpen: open }),
 }))
 
 export { MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH }

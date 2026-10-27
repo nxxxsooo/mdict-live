@@ -1,33 +1,49 @@
-version: '3.8'
-
 services:
   mdict-live:
     build: .
-    # image: tardivo/mdict-live:latest
+    image: tardivo/mdict-live:latest
     container_name: mdict-live
     restart: unless-stopped
+    read_only: true
     ports:
       - "5248:5248"
     volumes:
-      # Map dictionaries and database (flask_mdict.db)
-      - ./library:/app/content
-
-      # Map configuration folder
+      - ./library:/library:ro
+      - ./data:/data
+      - ./index:/data/index
       - ./config:/config
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    secrets:
+      - mdict_live_token
+    environment:
+      MDICT_V2_ENABLED: "true"
+      MDICT_LIBRARY_DIR: /library
+      MDICT_DATA_DIR: /data
+      MDICT_INDEX_DIR: /data/index
+      MDICT_CONFIG_DIR: /config
+      MDICT_LIVE_TOKEN_FILE: /run/secrets/mdict_live_token
+      MDICT_CORS_ORIGINS: ${MDICT_CORS_ORIGINS:-}
+      MDICT_TRUSTED_PROXY_HOPS: ${MDICT_TRUSTED_PROXY_HOPS:-0}
+      MDICT_TRUSTED_PROXY_CIDRS: ${MDICT_TRUSTED_PROXY_CIDRS:-}
+      REDIS_URL: ${REDIS_URL:-}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5248/health/ready"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
 
-    # Override command to use the config file in the mapped folder
-    command: [ "python", "app.py", "--config-file", "/config/flask_mdict.json" ]
+  valkey:
+    image: valkey/valkey:8-alpine
+    profiles: ["cache"]
+    container_name: mdict-valkey
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /data:rw,noexec,nosuid,size=256m
+    command: valkey-server --maxmemory 200mb --maxmemory-policy allkeys-lru --save ""
 
-    # Optional: set REDIS_URL to enable Valkey/Redis cache backend
-    # Without this, the app uses in-memory LRU cache (no extra services needed)
-    # environment:
-    #   - REDIS_URL=redis://valkey:6379/0
-
-  # Optional: Valkey cache backend (uncomment to enable)
-  # Install valkey-py in the container: pip install valkey
-  # valkey:
-  #   image: valkey/valkey:8-alpine
-  #   container_name: mdict-valkey
-  #   restart: unless-stopped
-  #   command: valkey-server --maxmemory 200mb --maxmemory-policy allkeys-lru --save ""
-  #   # No port exposure needed — only mdict-live talks to it
+secrets:
+  mdict_live_token:
+    file: ${MDICT_LIVE_TOKEN_FILE:-./secrets/mdict-live-token}
