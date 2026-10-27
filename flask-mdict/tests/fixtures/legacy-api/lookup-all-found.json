@@ -1,0 +1,13 @@
+{
+  "results": [
+    {
+      "found": true,
+      "html": "<link rel=\"stylesheet\" href=\"/mdict/uuid_LEGACY-UUID/resource/css/reset.css\"><p>Correct as a fact.</p>",
+      "logo": "/mdict/uuid_LEGACY-UUID/resource/logo.ico",
+      "title": "Fixture Dictionary",
+      "uuid": "LEGACY-UUID"
+    }
+  ],
+  "total": 1,
+  "word": "right"
+}

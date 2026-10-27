@@ -1,0 +1,1105 @@
+openapi: 3.1.0
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+info:
+  title: MdictLive Private Dictionary API
+  version: 2.0.0
+  description: >-
+    Versioned, bounded, source-cited access to a private MDict corpus. The
+    bearer-protected API is deterministic and does not require an AI runtime.
+servers:
+  - url: /
+    description: Current private MdictLive origin
+security:
+  - bearerAuth: []
+tags:
+  - name: Health
+  - name: Discovery
+  - name: Sources
+  - name: Lookup
+  - name: Citations
+  - name: Assets
+paths:
+  /health/live:
+    get:
+      operationId: getLiveness
+      summary: Report minimal process liveness
+      tags: [Health]
+      security: []
+      responses:
+        "200":
+          description: The process can serve requests.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LivenessResponse"
+        "500":
+          $ref: "#/components/responses/UnexpectedError"
+  /health/ready:
+    get:
+      operationId: getReadiness
+      summary: Report minimal storage and source readiness
+      tags: [Health]
+      security: []
+      responses:
+        "200":
+          description: Required initialization is complete.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+        "503":
+          description: Required initialization is not complete.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+  /assets/v2/{capability}:
+    get:
+      operationId: getSignedDictionaryAsset
+      summary: Resolve one short-lived source-scoped resource capability
+      tags: [Assets]
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/Capability"
+      responses:
+        "200":
+          description: Dictionary resource bytes with a bounded safe media type.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: Private cache policy that never exceeds capability expiry.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                contentEncoding: binary
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+  /api/v2:
+    get:
+      operationId: discoverApiV2
+      summary: Discover the v2 API and its declared limits
+      tags: [Discovery]
+      responses:
+        "200":
+          description: API discovery document.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscoveryResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v2/status:
+    get:
+      operationId: getServiceStatus
+      summary: Get authenticated redacted diagnostics
+      tags: [Discovery]
+      responses:
+        "200":
+          description: Redacted service status.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v2/sources:
+    get:
+      operationId: listSources
+      summary: List stable dictionary source records in configured order
+      tags: [Sources]
+      responses:
+        "200":
+          description: Ordered dictionary source records.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SourceListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v2/sources/{source_id}:
+    patch:
+      operationId: updateSource
+      summary: Update source enablement or ordering
+      tags: [Sources]
+      parameters:
+        - $ref: "#/components/parameters/SourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SourceUpdateRequest"
+      responses:
+        "200":
+          description: Source state, including whether it changed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SourceUpdateResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /api/v2/lookup:
+    get:
+      operationId: lookupGet
+      summary: Perform a side-effect-free bounded lookup
+      tags: [Lookup]
+      parameters:
+        - $ref: "#/components/parameters/Query"
+        - $ref: "#/components/parameters/SourceSelection"
+        - $ref: "#/components/parameters/RepresentationSelection"
+        - $ref: "#/components/parameters/EntryLimit"
+      responses:
+        "200":
+          description: Complete, empty, partial, or bounded lookup result.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LookupResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "503":
+          $ref: "#/components/responses/LookupUnavailable"
+    post:
+      operationId: lookupPost
+      summary: Perform a bounded lookup with optional explicit history recording
+      tags: [Lookup]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LookupRequest"
+      responses:
+        "200":
+          description: Complete, empty, partial, or bounded lookup result.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LookupResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "415":
+          $ref: "#/components/responses/UnsupportedMediaType"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "503":
+          $ref: "#/components/responses/LookupUnavailable"
+  /api/v2/suggestions:
+    get:
+      operationId: getSuggestions
+      summary: Get bounded prefix or explicit fuzzy headword suggestions
+      tags: [Lookup]
+      parameters:
+        - $ref: "#/components/parameters/Prefix"
+        - $ref: "#/components/parameters/SourceSelection"
+        - $ref: "#/components/parameters/SuggestionLimit"
+        - name: fuzzy
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Deterministically ordered headword suggestions.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestionResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /api/v2/metadata:
+    get:
+      operationId: getLexicalMetadata
+      summary: Get optional structured lexical metadata from a named dataset
+      tags: [Lookup]
+      parameters:
+        - $ref: "#/components/parameters/Query"
+      responses:
+        "200":
+          description: Available metadata fields or an unavailable capability state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetadataResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /api/v2/citations/{citation_token}:
+    get:
+      operationId: resolveCitation
+      summary: Resolve an opaque protected entry or text-block citation
+      tags: [Citations]
+      parameters:
+        - $ref: "#/components/parameters/CitationToken"
+      responses:
+        "200":
+          description: Resolved cited evidence and current source metadata.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CitationResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "410":
+          $ref: "#/components/responses/Gone"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+      description: Token loaded from MDICT_LIVE_TOKEN or MDICT_LIVE_TOKEN_FILE.
+  parameters:
+    Capability:
+      name: capability
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 32
+        maxLength: 4096
+        pattern: "^[A-Za-z0-9_-]+$"
+    CitationToken:
+      name: citation_token
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 32
+        maxLength: 4096
+        pattern: "^[A-Za-z0-9_-]+$"
+    SourceId:
+      name: source_id
+      in: path
+      required: true
+      schema:
+        $ref: "#/components/schemas/SourceId"
+    Query:
+      name: q
+      in: query
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 256
+      description: NFC-normalized after trimming surrounding Unicode whitespace.
+    Prefix:
+      name: prefix
+      in: query
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 256
+    SourceSelection:
+      name: source_id
+      in: query
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: array
+        maxItems: 32
+        uniqueItems: true
+        items:
+          $ref: "#/components/schemas/SourceId"
+    RepresentationSelection:
+      name: representation
+      in: query
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        default: [html, text]
+        items:
+          $ref: "#/components/schemas/Representation"
+    EntryLimit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 50
+    SuggestionLimit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+  responses:
+    Unauthorized:
+      description: Authentication or capability validation failed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    NotFound:
+      description: The requested API object does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Gone:
+      description: The citation revision or representation version is unavailable.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    ValidationError:
+      description: One or more request fields are invalid.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    UnsupportedMediaType:
+      description: A state-changing request did not use application/json.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    LookupUnavailable:
+      description: Every selected source failed before completing.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    UnexpectedError:
+      description: The request could not be safely completed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+  schemas:
+    ApiVersion:
+      type: string
+      const: "2.0"
+    RequestId:
+      type: string
+      minLength: 8
+      maxLength: 128
+      pattern: "^req_[A-Za-z0-9_-]+$"
+    SourceId:
+      type: string
+      minLength: 8
+      maxLength: 128
+      pattern: "^src_[A-Za-z0-9_-]+$"
+    Revision:
+      type: string
+      minLength: 16
+      maxLength: 128
+      pattern: "^[A-Za-z0-9_-]+$"
+    Representation:
+      type: string
+      enum: [html, text]
+    SuccessEnvelope:
+      type: object
+      required: [api_version, request_id]
+      properties:
+        api_version:
+          $ref: "#/components/schemas/ApiVersion"
+        request_id:
+          $ref: "#/components/schemas/RequestId"
+    ErrorObject:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: "^[a-z][a-z0-9_]*$"
+        message:
+          type: string
+          minLength: 1
+          maxLength: 512
+        details:
+          type: object
+          additionalProperties: true
+      additionalProperties: false
+    ErrorEnvelope:
+      type: object
+      required: [api_version, request_id, error]
+      properties:
+        api_version:
+          $ref: "#/components/schemas/ApiVersion"
+        request_id:
+          $ref: "#/components/schemas/RequestId"
+        error:
+          $ref: "#/components/schemas/ErrorObject"
+      additionalProperties: false
+    LivenessResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          const: alive
+      additionalProperties: false
+    ReadinessResponse:
+      type: object
+      required: [status, ready]
+      properties:
+        status:
+          type: string
+          enum: [ready, initializing, unavailable]
+        ready:
+          type: boolean
+      additionalProperties: false
+    ServiceLimits:
+      type: object
+      required:
+        - query_characters
+        - selected_sources
+        - returned_entries
+        - text_response_bytes
+        - text_entry_bytes
+        - html_response_bytes
+        - suggestions_default
+        - suggestions_maximum
+        - agent_evidence_bytes
+      properties:
+        query_characters:
+          type: integer
+          const: 256
+        selected_sources:
+          type: integer
+          minimum: 1
+          maximum: 32
+        returned_entries:
+          type: integer
+          minimum: 1
+          maximum: 50
+        text_response_bytes:
+          type: integer
+          minimum: 1
+          maximum: 65536
+        text_entry_bytes:
+          type: integer
+          minimum: 1
+          maximum: 24576
+        html_response_bytes:
+          type: integer
+          minimum: 1
+          maximum: 4194304
+        suggestions_default:
+          type: integer
+          minimum: 1
+          maximum: 20
+        suggestions_maximum:
+          type: integer
+          minimum: 20
+          maximum: 100
+        agent_evidence_bytes:
+          type: integer
+          minimum: 1
+          maximum: 32768
+      additionalProperties: false
+    DiscoveryLinks:
+      type: object
+      required: [self, status, sources, lookup, suggestions, metadata]
+      properties:
+        self:
+          type: string
+          pattern: "^/api/v2$"
+        status:
+          type: string
+          pattern: "^/api/v2/status$"
+        sources:
+          type: string
+          pattern: "^/api/v2/sources$"
+        lookup:
+          type: string
+          pattern: "^/api/v2/lookup$"
+        suggestions:
+          type: string
+          pattern: "^/api/v2/suggestions$"
+        metadata:
+          type: string
+          pattern: "^/api/v2/metadata$"
+      additionalProperties: false
+    DiscoveryData:
+      type: object
+      required: [api_version, links, limits]
+      properties:
+        api_version:
+          $ref: "#/components/schemas/ApiVersion"
+        links:
+          $ref: "#/components/schemas/DiscoveryLinks"
+        limits:
+          $ref: "#/components/schemas/ServiceLimits"
+      additionalProperties: false
+    DiscoveryResponse:
+      allOf:
+        - $ref: "#/components/schemas/SuccessEnvelope"
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: "#/components/schemas/DiscoveryData"
+    StatusData:
+      type: object
+      required: [state, api_version, sources, storage, capabilities, limits]
+      properties:
+        state:
+          type: string
+          enum: [ready, initializing, degraded]
+        api_version:
+          $ref: "#/components/schemas/ApiVersion"
+        sources:
+          type: object
+          required: [available, unavailable, scan_state]
+          properties:
+            available:
+              type: integer
+              minimum: 0
+            unavailable:
+              type: integer
+              minimum: 0
+            scan_state:
+              type: string
+              enum: [idle, scanning, failed]
+          additionalProperties: false
+        storage:
+          type: object
+          required: [library_readable, data_writable, index_writable]
+          properties:
+            library_readable:
+              type: boolean
+            data_writable:
+              type: boolean
+            index_writable:
+              type: boolean
+          additionalProperties: false
+        capabilities:
+          type: object
+          required: [metadata, external_cache]
+          properties:
+            metadata:
+              type: boolean
+            external_cache:
+              type: boolean
+          additionalProperties: false
+        limits:
+          $ref: "#/components/schemas/ServiceLimits"
+      additionalProperties: false
+    StatusResponse:
+      allOf:
+        - $ref: "#/components/schemas/SuccessEnvelope"
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: "#/components/schemas/StatusData"
+    Source:
+      type: object
+      required:
+        - source_id
+        - revision
+        - title
+        - enabled
+        - order
+        - available
+        - supported_representations
+      properties:
+        source_id:
+          $ref: "#/components/schemas/SourceId"
+        revision:
+          $ref: "#/components/schemas/Revision"
+        title:
+          type: string
+          minLength: 1
+          maxLength: 512
+        enabled:
+          type: boolean
+        order:
+          type: integer
+          minimum: 0
+        available:
+          type: boolean
+        supported_representations:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/Representation"
+        unavailable_reason:
+          type: [string, "null"]
+          maxLength: 128
+      additionalProperties: false
+    SourceListData:
+      type: object
+      required: [sources]
+      properties:
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/Source"
+      additionalProperties: false
+    SourceListResponse:
+      allOf:
+        - $ref: "#/components/schemas/SuccessEnvelope"
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: "#/components/schemas/SourceListData"
+    SourceUpdateRequest:
+      type: object
+      minProperties: 1
+      properties:
+        enabled:
+          type: boolean
+        order:
+          type: integer
+          minimum: 0
+      additionalProperties: false
+    SourceUpdateData:
+      type: object
+      required: [changed, source]
+      properties:
+        changed:
+          type: boolean
+        source:
+          $ref: "#/components/schemas/Source"
+      additionalProperties: false
+    SourceUpdateResponse:
+      allOf:
+        - $ref: "#/components/schemas/SuccessEnvelope"
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: "#/components/schemas/SourceUpdateData"
+    LookupRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 256
+        source_ids:
+          type: array
+          maxItems: 32
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/SourceId"
+        representations:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          default: [html, text]
+          items:
+            $ref: "#/components/schemas/Representation"
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 50
+        record_history:
+          type: boolean
+          default: false
+      additionalProperties: false
+    AppliedBounds:
+      type: object
+      required:
+        - source_limit
+        - entry_limit
+        - text_response_bytes
+        - text_entry_bytes
+        - html_response_bytes
+      properties:
+        source_limit:
+          type: integer
+          minimum: 1
+          maximum: 32
+        entry_limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+        text_response_bytes:
+          type: integer
+          minimum: 1
+          maximum: 65536
+        text_entry_bytes:
+          type: integer
+          minimum: 1
+          maximum: 24576
+        html_response_bytes:
+          type: integer
+          minimum: 1
+          maximum: 4194304
+      additionalProperties: false
+    CitationReference:
+      type: object
+      required: [uri, token]
+      properties:
+        uri:
+          type: string
+          format: uri
+          pattern: "^mdict://"
+        token:
+          type: string
+          minLength: 32
+          maxLength: 4096
+          pattern: "^[A-Za-z0-9_-]+$"
+      additionalProperties: false
+    TextBlock:
+      type: object
+      required: [block_id, order, text, citation]
+      properties:
+        block_id:
+          type: string
+          minLength: 8
+          maxLength: 128
+        order:
+          type: integer
+          minimum: 0
+        text:
+          type: string
+        citation:
+          $ref: "#/components/schemas/CitationReference"
+      additionalProperties: false
+    LookupEntry:
+      type: object
+      required:
+        - source_id
+        - revision
+        - entry_id
+        - headword
+        - record_ordinal
+        - citation
+      properties:
+        source_id:
+          $ref: "#/components/schemas/SourceId"
+        revision:
+          $ref: "#/components/schemas/Revision"
+        entry_id:
+          type: string
+          minLength: 8
+          maxLength: 128
+        headword:
+          type: string
+          minLength: 1
+          maxLength: 1024
+        record_ordinal:
+          type: integer
+          minimum: 0
+        citation:
+          $ref: "#/components/schemas/CitationReference"
+        html:
+          type: string
+        text_blocks:
+          type: array
+          items:
+            $ref: "#/components/schemas/TextBlock"
+      additionalProperties: false
+    PerSourceError:
+      type: object
+      required: [source_id, code, message]
+      properties:
+        source_id:
+          $ref: "#/components/schemas/SourceId"
+        code:
+          type: string
+          pattern: "^[a-z][a-z0-9_]*$"
+        message:
+          type: string
+          minLength: 1
+          maxLength: 256
+      additionalProperties: false
+    LookupProgress:
+      type: object
+      required: [selected_source_ids, completed_source_ids, failed_sources, omitted_source_ids]
+      properties:
+        selected_source_ids:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/SourceId"
+        completed_source_ids:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/SourceId"
+        failed_sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerSourceError"
+        omitted_source_ids:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/SourceId"
+      additionalProperties: false
+    Truncation:
+      type: object
+      required: [causes]
+      properties:
+        causes:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            enum: [source_limit, entry_limit, text_response_bytes, text_entry_bytes, html_response_bytes]
+        resumable_source_ids:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/SourceId"
+      additionalProperties: false
+    LookupData:
+      type: object
+      required:
+        - query
+        - normalized_query
+        - representations
+        - entries
+        - partial
+        - truncated
+        - progress
+        - bounds
+        - elapsed_ms
+      properties:
+        query:
+          type: string
+          minLength: 1
+        normalized_query:
+          type: string
+          minLength: 1
+          maxLength: 256
+        representations:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/Representation"
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/LookupEntry"
+        partial:
+          type: boolean
+        truncated:
+          type: boolean
+        truncation:
+          oneOf:
+            - $ref: "#/components/schemas/Truncation"
+            - type: "null"
+        progress:
+          $ref: "#/components/schemas/LookupProgress"
+        bounds:
+          $ref: "#/components/schemas/AppliedBounds"
+        elapsed_ms:
+          type: number
+          minimum: 0
+        history_recorded:
+          type: boolean
+      additionalProperties: false
+    LookupResponse:
+      allOf:
+        - $ref: "#/components/schemas/SuccessEnvelope"
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: "#/components/schemas/LookupData"
+    Suggestion:
+      type: object
+      required: [headword, source_ids, kind]
+      properties:
+        headword:
+          type: string
+          minLength: 1
+          maxLength: 1024
+        source_ids:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/SourceId"
+        kind:
+          type: string
+          enum: [prefix, fuzzy]
+        score:
+          type: number
+          minimum: 0
+          maximum: 1
+      additionalProperties: false
+    SuggestionData:
+      type: object
+      required: [prefix, suggestions, fuzzy, limit, truncated]
+      properties:
+        prefix:
+          type: string
+          minLength: 1
+          maxLength: 256
+        suggestions:
+          type: array
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/Suggestion"
+        fuzzy:
+          type: boolean
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        truncated:
+          type: boolean
+      additionalProperties: false
+    SuggestionResponse:
+      allOf:
+        - $ref: "#/components/schemas/SuccessEnvelope"
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: "#/components/schemas/SuggestionData"
+    MetadataDataset:
+      type: object
+      required: [id, title]
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+        title:
+          type: string
+          minLength: 1
+          maxLength: 256
+        version:
+          type: [string, "null"]
+          maxLength: 128
+      additionalProperties: false
+    MetadataRecord:
+      type: object
+      required: [query, dataset]
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 256
+        dataset:
+          $ref: "#/components/schemas/MetadataDataset"
+        phonetic:
+          type: string
+          maxLength: 256
+        frequency:
+          type: number
+        tags:
+          type: array
+          items:
+            type: string
+        inflections:
+          type: object
+          additionalProperties:
+            type: string
+        definition:
+          type: string
+        translation:
+          type: string
+      additionalProperties: false
+    MetadataData:
+      type: object
+      required: [available, query, records]
+      properties:
+        available:
+          type: boolean
+        query:
+          type: string
+          minLength: 1
+          maxLength: 256
+        records:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetadataRecord"
+        unavailable_reason:
+          type: [string, "null"]
+          maxLength: 128
+      additionalProperties: false
+    MetadataResponse:
+      allOf:
+        - $ref: "#/components/schemas/SuccessEnvelope"
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: "#/components/schemas/MetadataData"
+    CitationSource:
+      type: object
+      required: [source_id, revision, title]
+      properties:
+        source_id:
+          $ref: "#/components/schemas/SourceId"
+        revision:
+          $ref: "#/components/schemas/Revision"
+        title:
+          type: string
+          minLength: 1
+          maxLength: 512
+      additionalProperties: false
+    ResolvedCitationData:
+      type: object
+      required: [citation, source, entry_id, headword, representation_version]
+      properties:
+        citation:
+          $ref: "#/components/schemas/CitationReference"
+        source:
+          $ref: "#/components/schemas/CitationSource"
+        entry_id:
+          type: string
+          minLength: 8
+          maxLength: 128
+        headword:
+          type: string
+          minLength: 1
+          maxLength: 1024
+        representation_version:
+          type: string
+          minLength: 1
+          maxLength: 64
+        text_block:
+          oneOf:
+            - $ref: "#/components/schemas/TextBlock"
+            - type: "null"
+      additionalProperties: false
+    CitationResponse:
+      allOf:
+        - $ref: "#/components/schemas/SuccessEnvelope"
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: "#/components/schemas/ResolvedCitationData"

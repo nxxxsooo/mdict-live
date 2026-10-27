@@ -4,16 +4,34 @@ import os
 import sys
 import json
 import argparse
+import atexit
 import logging
 
-from flask import Flask, redirect, url_for, g
+from flask import Flask, redirect, request, url_for, g
 
-from flask_mdict import __version__, init_app
+from application_database import adopt_legacy_database
+from flask_mdict import __version__, get_mdict, init_app
 from flask_mdict.api import api as api_blueprint
-from werkzeug.middleware.proxy_fix import ProxyFix
+from private_service import configure_proxy_middleware, load_private_service_settings
+from runtime_v2 import build_v2_dependencies
+from storage_config import resolve_storage_paths
+from v2_api import install_v2_api
 
 
 logger = logging.getLogger(__name__)
+
+
+def _optional_boolean(value):
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    normalized = str(value).strip().casefold()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError("MDICT_V2_ENABLED must be a boolean value")
 
 
 def create_app(config=None):
@@ -22,8 +40,6 @@ def create_app(config=None):
         format="%(message)s",
     )
     app = Flask(__name__, template_folder=None, static_folder=None)
-    # Apply ProxyFix to handle X-Forwarded-Proto headers from reverse proxy
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     # csrf 永久有效
     app.config["WTF_CSRF_TIME_LIMIT"] = None
@@ -36,11 +52,59 @@ def create_app(config=None):
     if config:
         app.config.update(config)
 
-    mdict_dir = app.config["MDICT_DIR"]
-    if not os.path.exists(mdict_dir):
-        os.makedirs(mdict_dir)
+    configured_v2 = _optional_boolean(
+        app.config.get("MDICT_V2_ENABLED", os.environ.get("MDICT_V2_ENABLED"))
+    )
+    token_configured = bool(
+        os.environ.get("MDICT_LIVE_TOKEN") or os.environ.get("MDICT_LIVE_TOKEN_FILE")
+    )
+    v2_enabled = token_configured if configured_v2 is None else configured_v2
+    v2_settings = load_private_service_settings() if v2_enabled else None
+    app.config["MDICT_V2_ENABLED"] = v2_enabled
 
-    app.config["APP_DB"] = os.path.join(mdict_dir, "flask_mdict.db")
+    # Opting into v2 also opts out of the historical writable-corpus layout.
+    if v2_enabled and not any(
+        app.config.get(key) or os.environ.get(key)
+        for key in (
+            "MDICT_LIBRARY_DIR",
+            "MDICT_DATA_DIR",
+            "MDICT_INDEX_DIR",
+            "MDICT_CONFIG_DIR",
+        )
+    ):
+        app.config["MDICT_LIBRARY_DIR"] = app.config["MDICT_DIR"]
+
+    storage_paths = resolve_storage_paths(app.config)
+    app.extensions["mdict_storage_paths"] = storage_paths
+    app.config["MDICT_LIBRARY_DIR"] = os.fspath(storage_paths.library_dir)
+    app.config["MDICT_DATA_DIR"] = os.fspath(storage_paths.data_dir)
+    app.config["MDICT_INDEX_DIR"] = (
+        os.fspath(storage_paths.index_dir) if storage_paths.index_dir else None
+    )
+    app.config["MDICT_CONFIG_DIR"] = os.fspath(storage_paths.config_dir)
+    app.config["MDICT_DESCRIPTION_DIR"] = (
+        os.fspath(storage_paths.data_dir / "descriptions")
+        if not storage_paths.legacy_layout
+        else None
+    )
+    # Legacy internals continue to consume these names during the service cutover.
+    app.config["MDICT_DIR"] = app.config["MDICT_LIBRARY_DIR"]
+    app.config["INDEX_DIR"] = app.config["MDICT_INDEX_DIR"]
+
+    mdict_dir = app.config["MDICT_DIR"]
+    if storage_paths.legacy_layout and not os.path.exists(mdict_dir):
+        os.makedirs(mdict_dir)
+    if not storage_paths.legacy_layout:
+        os.makedirs(storage_paths.data_dir, exist_ok=True)
+        if storage_paths.index_dir:
+            os.makedirs(storage_paths.index_dir, exist_ok=True)
+
+    app.config["APP_DB"] = os.fspath(storage_paths.application_database)
+    if not storage_paths.legacy_layout:
+        adopt_legacy_database(
+            storage_paths.library_dir / "flask_mdict.db",
+            storage_paths.application_database,
+        )
 
     wfd_db = None
     local_wfd_db = os.path.join(mdict_dir, "flask_mdict_wfd.db")
@@ -62,6 +126,14 @@ def create_app(config=None):
     init_app(app, url_prefix="/mdict")
     app.register_blueprint(api_blueprint, url_prefix="/api")
 
+    if v2_enabled:
+        v2_dependencies = build_v2_dependencies(
+            app.config, get_mdict(), v2_settings
+        )
+        install_v2_api(app, v2_dependencies, v2_settings)
+        app.extensions["mdict_v2_dependencies"] = v2_dependencies
+        atexit.register(v2_dependencies.lookup_service.close)
+
     # Serve React SPA static files in production
     spa_dir = os.path.join(os.path.dirname(__file__), "..", "website", "dist")
     if os.path.isdir(spa_dir):
@@ -79,7 +151,7 @@ def create_app(config=None):
     def index():
         # If SPA is built, redirect to it; otherwise use legacy UI
         if os.path.isdir(spa_dir):
-            return redirect("/app/")
+            return redirect(f"{request.script_root}/app/")
         return redirect(url_for("mdict.query_word_all"))
 
     @app.route("/favicon.ico")
@@ -93,6 +165,8 @@ def create_app(config=None):
             return
         for conn in database.values():
             conn.close()
+
+    app.wsgi_app = configure_proxy_middleware(app.wsgi_app)
 
     return app
 

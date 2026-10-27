@@ -1,0 +1,9 @@
+[
+  {
+    "enabled": true,
+    "logo": "/mdict/uuid_LEGACY-UUID/resource/logo.ico",
+    "title": "Fixture Dictionary",
+    "type": "mdict",
+    "uuid": "LEGACY-UUID"
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "api_version": "2.0",
+  "request_id": "req_status_001",
+  "data": {
+    "state": "ready",
+    "api_version": "2.0",
+    "sources": {
+      "available": 2,
+      "unavailable": 1,
+      "scan_state": "idle"
+    },
+    "storage": {
+      "library_readable": true,
+      "data_writable": true,
+      "index_writable": true
+    },
+    "capabilities": {
+      "metadata": true,
+      "external_cache": false
+    },
+    "limits": {
+      "query_characters": 256,
+      "selected_sources": 32,
+      "returned_entries": 50,
+      "text_response_bytes": 65536,
+      "text_entry_bytes": 24576,
+      "html_response_bytes": 4194304,
+      "suggestions_default": 20,
+      "suggestions_maximum": 100,
+      "agent_evidence_bytes": 32768
+    }
+  }
+}

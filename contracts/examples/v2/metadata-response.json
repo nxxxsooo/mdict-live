@@ -1,0 +1,28 @@
+{
+  "api_version": "2.0",
+  "request_id": "req_metadata_001",
+  "data": {
+    "available": true,
+    "query": "right",
+    "records": [
+      {
+        "query": "right",
+        "dataset": {
+          "id": "ecdict",
+          "title": "ECDICT lexical metadata",
+          "version": "fixture-1"
+        },
+        "phonetic": "raɪt",
+        "frequency": 4.92,
+        "tags": ["cet4", "core"],
+        "inflections": {
+          "third_person": "rights",
+          "past": "righted"
+        },
+        "definition": "correct or suitable",
+        "translation": "正确的；合适的"
+      }
+    ],
+    "unavailable_reason": null
+  }
+}

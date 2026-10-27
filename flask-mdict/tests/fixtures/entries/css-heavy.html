@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <style>
+      @font-face { font-family: FixtureSerif; src: url("fonts/fixture.woff2"); }
+      :root { --ink: #16325c; --accent: #b63852; }
+      body { margin: 0; color: var(--ink); font-family: FixtureSerif, serif; }
+      a { color: var(--accent); }
+      .entry { display: grid; grid-template-columns: 8rem minmax(0, 1fr); gap: 1rem; }
+      #sense-one > .label::before { content: "1"; border: 1px solid currentColor; }
+      [data-register="formal"] { letter-spacing: .04em; text-transform: uppercase; }
+      @media (max-width: 32rem) { .entry { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <article class="entry">
+      <header><h1>cascade</h1><span data-register="formal">formal</span></header>
+      <section id="sense-one"><span class="label"></span><p>A synthetic style stress case.</p></section>
+    </article>
+  </body>
+</html>

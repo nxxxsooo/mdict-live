@@ -1,0 +1,246 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mdict-live.local/contracts/agent-tools-v1.json",
+  "title": "MdictLive Agent Tools v1",
+  "description": "Runtime-neutral read-only tool contracts for bounded dictionary evidence.",
+  "version": "1.0.0",
+  "tools": [
+    {
+      "name": "mdict_sources",
+      "description": "List ordered MdictLive dictionary sources and availability without exposing storage paths.",
+      "operation_id": "listSources",
+      "input_schema": { "$ref": "#/$defs/EmptyInput" },
+      "output_schema": { "$ref": "#/$defs/SourceToolResult" }
+    },
+    {
+      "name": "mdict_lookup",
+      "description": "Look up an exact word or phrase and return bounded text evidence with stable citations; never returns source HTML.",
+      "operation_id": "lookupGet",
+      "input_schema": { "$ref": "#/$defs/LookupInput" },
+      "output_schema": { "$ref": "#/$defs/LookupToolResult" }
+    },
+    {
+      "name": "mdict_resolve",
+      "description": "Resolve one protected MdictLive citation token to current source and optional text-block evidence.",
+      "operation_id": "resolveCitation",
+      "input_schema": { "$ref": "#/$defs/ResolveInput" },
+      "output_schema": { "$ref": "#/$defs/ResolveToolResult" }
+    },
+    {
+      "name": "mdict_suggest",
+      "description": "Return deterministic bounded headword suggestions, with typo fallback only when explicitly requested.",
+      "operation_id": "getSuggestions",
+      "input_schema": { "$ref": "#/$defs/SuggestInput" },
+      "output_schema": { "$ref": "#/$defs/SuggestToolResult" }
+    }
+  ],
+  "$defs": {
+    "EmptyInput": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "SourceId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "SourceIds": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/SourceId" },
+      "maxItems": 32,
+      "uniqueItems": true
+    },
+    "Citation": {
+      "type": "object",
+      "required": ["uri", "token"],
+      "properties": {
+        "uri": { "type": "string", "pattern": "^mdict://", "maxLength": 4096 },
+        "token": { "type": "string", "minLength": 32, "maxLength": 4096, "pattern": "^[A-Za-z0-9_-]+$" }
+      },
+      "additionalProperties": false
+    },
+    "LookupInput": {
+      "type": "object",
+      "required": ["query"],
+      "properties": {
+        "query": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "source_ids": { "$ref": "#/$defs/SourceIds" }
+      },
+      "additionalProperties": false
+    },
+    "ResolveInput": {
+      "type": "object",
+      "required": ["citation_token"],
+      "properties": {
+        "citation_token": { "type": "string", "minLength": 32, "maxLength": 4096, "pattern": "^[A-Za-z0-9_-]+$" }
+      },
+      "additionalProperties": false
+    },
+    "SuggestInput": {
+      "type": "object",
+      "required": ["prefix"],
+      "properties": {
+        "prefix": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "source_ids": { "$ref": "#/$defs/SourceIds" },
+        "fuzzy": { "type": "boolean", "default": false },
+        "limit": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+      },
+      "additionalProperties": false
+    },
+    "ToolEnvelope": {
+      "type": "object",
+      "required": ["contract_version", "request_id", "data"],
+      "properties": {
+        "contract_version": { "const": "agent-tools-v1" },
+        "request_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "data": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "Source": {
+      "type": "object",
+      "required": ["source_id", "revision", "title", "enabled", "available", "order"],
+      "properties": {
+        "source_id": { "$ref": "#/$defs/SourceId" },
+        "revision": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "enabled": { "type": "boolean" },
+        "available": { "type": "boolean" },
+        "order": { "type": "integer", "minimum": 0 },
+        "unavailable_reason": { "type": ["string", "null"], "maxLength": 512 }
+      },
+      "additionalProperties": false
+    },
+    "SourceToolResult": {
+      "allOf": [
+        { "$ref": "#/$defs/ToolEnvelope" },
+        {
+          "properties": {
+            "data": {
+              "type": "object",
+              "required": ["sources"],
+              "properties": { "sources": { "type": "array", "items": { "$ref": "#/$defs/Source" }, "maxItems": 256 } },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "TextEvidence": {
+      "type": "object",
+      "required": ["block_id", "order", "text", "citation"],
+      "properties": {
+        "block_id": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "order": { "type": "integer", "minimum": 0 },
+        "text": { "type": "string", "maxLength": 24576 },
+        "citation": { "$ref": "#/$defs/Citation" }
+      },
+      "additionalProperties": false
+    },
+    "AgentEntry": {
+      "type": "object",
+      "required": ["source_id", "revision", "entry_id", "headword", "record_ordinal", "citation", "text_blocks"],
+      "properties": {
+        "source_id": { "$ref": "#/$defs/SourceId" },
+        "revision": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "entry_id": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "headword": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "record_ordinal": { "type": "integer", "minimum": 0 },
+        "citation": { "$ref": "#/$defs/Citation" },
+        "text_blocks": { "type": "array", "items": { "$ref": "#/$defs/TextEvidence" }, "maxItems": 256 }
+      },
+      "additionalProperties": false
+    },
+    "SourceFailure": {
+      "type": "object",
+      "required": ["source_id", "code", "message"],
+      "properties": {
+        "source_id": { "$ref": "#/$defs/SourceId" },
+        "code": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "message": { "type": "string", "minLength": 1, "maxLength": 512 }
+      },
+      "additionalProperties": false
+    },
+    "LookupToolResult": {
+      "allOf": [
+        { "$ref": "#/$defs/ToolEnvelope" },
+        {
+          "properties": {
+            "data": {
+              "type": "object",
+              "required": ["query", "normalized_query", "entries", "partial", "truncated", "failed_sources", "omitted_source_ids"],
+              "properties": {
+                "query": { "type": "string", "maxLength": 256 },
+                "normalized_query": { "type": "string", "maxLength": 256 },
+                "entries": { "type": "array", "items": { "$ref": "#/$defs/AgentEntry" }, "maxItems": 50 },
+                "partial": { "type": "boolean" },
+                "truncated": { "type": "boolean" },
+                "truncation_causes": { "type": "array", "items": { "type": "string", "maxLength": 160 }, "maxItems": 32 },
+                "failed_sources": { "type": "array", "items": { "$ref": "#/$defs/SourceFailure" }, "maxItems": 32 },
+                "omitted_source_ids": { "$ref": "#/$defs/SourceIds" }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "ResolveToolResult": {
+      "allOf": [
+        { "$ref": "#/$defs/ToolEnvelope" },
+        {
+          "properties": {
+            "data": {
+              "type": "object",
+              "required": ["citation", "source", "entry_id", "headword", "representation_version"],
+              "properties": {
+                "citation": { "$ref": "#/$defs/Citation" },
+                "source": { "$ref": "#/$defs/Source" },
+                "entry_id": { "type": "string", "minLength": 1, "maxLength": 256 },
+                "headword": { "type": "string", "minLength": 1, "maxLength": 512 },
+                "representation_version": { "type": "string", "minLength": 1, "maxLength": 64 },
+                "text_block": { "oneOf": [{ "$ref": "#/$defs/TextEvidence" }, { "type": "null" }] }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "SuggestToolResult": {
+      "allOf": [
+        { "$ref": "#/$defs/ToolEnvelope" },
+        {
+          "properties": {
+            "data": {
+              "type": "object",
+              "required": ["prefix", "suggestions", "fuzzy", "truncated"],
+              "properties": {
+                "prefix": { "type": "string", "maxLength": 256 },
+                "fuzzy": { "type": "boolean" },
+                "truncated": { "type": "boolean" },
+                "suggestions": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "object",
+                    "required": ["headword"],
+                    "properties": {
+                      "headword": { "type": "string", "minLength": 1, "maxLength": 512 },
+                      "source_ids": { "$ref": "#/$defs/SourceIds" },
+                      "score": { "type": "number" }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    }
+  }
+}

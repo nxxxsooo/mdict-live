@@ -1,0 +1,30 @@
+{
+  "css-heavy": {
+    "bytes": 1010,
+    "sha256": "211d0af7be3036880fee74fae6fe870d3e0aa76d7d19bb996add57a595894740"
+  },
+  "link": {
+    "bytes": 631,
+    "sha256": "7523b35f0f95ae7359f027ad5ed74048dc910e8408206cfe725416125e2e597a"
+  },
+  "malformed": {
+    "bytes": 461,
+    "sha256": "f7b278d01eaeffda6675712f2bfe90440306ca7b14e5fa13226f9e21d2174170"
+  },
+  "media": {
+    "bytes": 809,
+    "sha256": "34b93acadd3dcff3ccddcaec9fda725c43e5a38f534c6310f260197494e88262"
+  },
+  "plain": {
+    "bytes": 437,
+    "sha256": "1212c86394e3fc62216abf3ba4ac5c548c812665f1dc326673cd9780e7906946"
+  },
+  "script-bearing": {
+    "bytes": 880,
+    "sha256": "f942dd4fe1888b9c332d07754801d5145b5296dab8bb3bf9bd167b959fc0dcfa"
+  },
+  "table": {
+    "bytes": 643,
+    "sha256": "8432e7e4363840467f8e1df8734a8ac5afa4b67da6b639a44b28642069cfda39"
+  }
+}

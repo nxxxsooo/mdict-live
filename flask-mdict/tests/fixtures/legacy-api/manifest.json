@@ -1,0 +1,20 @@
+[
+  {"file": "dicts.json", "method": "GET", "path": "/api/dicts", "setup": "default"},
+  {"file": "lookup-word-found.json", "method": "GET", "path": "/api/dicts/LEGACY-UUID/lookup/right", "setup": "default"},
+  {"file": "lookup-word-empty.json", "method": "GET", "path": "/api/dicts/LEGACY-UUID/lookup/missing", "setup": "default"},
+  {"file": "lookup-all-found.json", "method": "GET", "path": "/api/lookup/right", "setup": "default"},
+  {"file": "lookup-all-empty.json", "method": "GET", "path": "/api/lookup/missing", "setup": "default"},
+  {"file": "suggest.json", "method": "GET", "path": "/api/suggest/ri?limit=20", "setup": "default"},
+  {"file": "history.json", "method": "GET", "path": "/api/history?limit=100", "setup": "history"},
+  {"file": "history-clear.json", "method": "POST", "path": "/api/history/clear", "setup": "history"},
+  {"file": "meta.json", "method": "GET", "path": "/api/meta/right", "setup": "default"},
+  {"file": "toggle.json", "method": "POST", "path": "/api/dicts/LEGACY-UUID/toggle", "setup": "default"},
+  {"file": "wordbooks-list.json", "method": "GET", "path": "/api/wordbooks", "setup": "wordbook"},
+  {"file": "wordbooks-create.json", "method": "POST", "path": "/api/wordbooks", "setup": "default", "json": {"name": "Fixture words"}},
+  {"file": "wordbooks-delete.json", "method": "DELETE", "path": "/api/wordbooks/1", "setup": "wordbook"},
+  {"file": "wordbooks-update.json", "method": "PUT", "path": "/api/wordbooks/1", "setup": "wordbook", "json": {"name": "Renamed words"}},
+  {"file": "wordbook-entries-list.json", "method": "GET", "path": "/api/wordbooks/1/entries", "setup": "wordbook_entry"},
+  {"file": "wordbook-entry-create.json", "method": "POST", "path": "/api/wordbooks/1/entries", "setup": "wordbook", "json": {"word": "right"}},
+  {"file": "wordbook-entry-delete.json", "method": "DELETE", "path": "/api/wordbooks/1/entries/1", "setup": "wordbook_entry"},
+  {"file": "wordbook-membership.json", "method": "GET", "path": "/api/wordbooks/entries?word=right", "setup": "wordbook_entry"}
+]

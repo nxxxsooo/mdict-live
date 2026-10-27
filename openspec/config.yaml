@@ -1,0 +1,41 @@
+schema: spec-driven
+
+context: |
+  Product: MdictLive, a dormant self-hosted MDict reader being revived as a
+  private, local-first dictionary engine for one user.
+  Stack: Python 3.11, Flask, SQLite, mdict-utils-derived parsing, React 19,
+  Vite 7, Tailwind CSS 4, Docker/Unraid, optional Valkey/Redis caching.
+  Durable assets: the MDict parser, mounted .mdx/.mdd corpus, faithful entry
+  rendering, multi-dictionary lookup, frequency metadata, history, wordbooks,
+  and existing container distribution.
+  Deployment: local or self-hosted behind Nginx Proxy Manager and a private
+  Tailscale or ZeroTier network. No multi-user account system.
+  Clients: HTTP API and the private web reader first; CLI and optional Pi,
+  Raycast, and MCP clients consume the same contract. The core must not depend
+  on any model runtime.
+  AI policy: when a model is used it may act agentically over deterministic,
+  source-cited tools. Sub2api is the first BYOK target, with OpenAI-compatible
+  and Anthropic-compatible interfaces, but provider integration is client-side.
+  Preserve current behavior during migration and do not rewrite the parser or
+  migrate the established framework stack without evidence.
+
+rules:
+  proposal:
+    - Keep the proposal concise and state explicit non-goals.
+    - Separate the first implementable foundation from downstream client polish.
+  specs:
+    - Use testable SHALL requirements and concrete WHEN/THEN scenarios.
+    - Cover authentication, failure behavior, bounds, compatibility, and source attribution.
+    - Do not make AI or any agent runtime mandatory for deterministic lookup.
+  design:
+    - Include API boundaries, trust model, storage layout, stable identity, citation design, migration, and security tradeoffs.
+    - Tie major decisions to current repository evidence and list rejected alternatives.
+  tasks:
+    - Order tasks by dependency and keep each checkbox independently verifiable.
+    - Include automated tests, migration checks, container verification, and real entry-point acceptance checks.
+
+operations:
+  apply:
+    guidance:
+      - Preserve legacy endpoints until the versioned API and clients are verified.
+      - Keep implementation changes reviewable and run the smallest sufficient verification after each task group.

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Executable-content fixture</title>
+    <script>window.dictionaryScriptRan = true;</script>
+  </head>
+  <body onload="window.inlineHandlerRan = true">
+    <article class="entry">
+      <h1 onclick="alert('unsafe')">active</h1>
+      <a href="javascript:alert('unsafe')">unsafe link</a>
+      <form action="/api/private" method="post"><button type="submit">submit</button></form>
+      <iframe src="https://example.invalid/embed"></iframe>
+      <object data="payload.bin"></object>
+      <embed src="payload.bin">
+      <p>A visible definition that must remain after executable content becomes inert.</p>
+    </article>
+  </body>
+</html>

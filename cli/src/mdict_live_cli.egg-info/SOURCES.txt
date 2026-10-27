@@ -1,0 +1,15 @@
+README.md
+pyproject.toml
+src/mdict_live_cli/__init__.py
+src/mdict_live_cli/__main__.py
+src/mdict_live_cli/config.py
+src/mdict_live_cli/errors.py
+src/mdict_live_cli/main.py
+src/mdict_live_cli/output.py
+src/mdict_live_cli/transport.py
+src/mdict_live_cli.egg-info/PKG-INFO
+src/mdict_live_cli.egg-info/SOURCES.txt
+src/mdict_live_cli.egg-info/dependency_links.txt
+src/mdict_live_cli.egg-info/entry_points.txt
+src/mdict_live_cli.egg-info/top_level.txt
+tests/test_cli_subprocess.py

@@ -1,92 +1,90 @@
-import { useEffect } from 'react'
-import { Menu, Settings } from 'lucide-react'
+import { useEffect, useRef } from 'react'
+import { Bookmark, Menu, MessageSquareText, Moon, Settings, Sun } from 'lucide-react'
 import { SearchBar } from '@/components/SearchBar'
-import { DictSidebar } from '@/components/DictSidebar'
-import { ResultsArea } from '@/components/ResultsArea'
-import { WordMeta } from '@/components/WordMeta'
-import { useAppStore } from '@/stores/useAppStore'
+import { SourceLedger } from '@/components/SourceLedger'
+import { ReadingWorkspace } from '@/components/ReadingWorkspace'
+import { ContextDrawer } from '@/components/ContextDrawer'
 import { SettingsPanel } from '@/components/SettingsPanel'
+import { useWorkspaceLookup } from '@/hooks/useWorkspace'
+import { useAppStore } from '@/stores/useAppStore'
 
 export default function App() {
-  const searchWord = useAppStore((s) => s.searchWord)
-  const setSearchWord = useAppStore((s) => s.setSearchWord)
-  const setSidebarOpen = useAppStore((s) => s.setSidebarOpen)
-  const darkMode = useAppStore((s) => s.darkMode)
-  const toggleDarkMode = useAppStore((s) => s.toggleDarkMode)
-  const setSettingsOpen = useAppStore((s) => s.setSettingsOpen)
+  const searchWord = useAppStore((state) => state.searchWord)
+  const setSidebarOpen = useAppStore((state) => state.setSidebarOpen)
+  const darkMode = useAppStore((state) => state.darkMode)
+  const toggleDarkMode = useAppStore((state) => state.toggleDarkMode)
+  const setSettingsOpen = useAppStore((state) => state.setSettingsOpen)
+  const setContextOpen = useAppStore((state) => state.setContextOpen)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const settingsButtonRef = useRef<HTMLButtonElement>(null)
+  const contextButtonRef = useRef<HTMLButtonElement>(null)
+  const { sourcesQuery, lookupQuery } = useWorkspaceLookup(searchWord)
+  const sources = sourcesQuery.data ?? []
 
-  // Sync dark mode class
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
   }, [darkMode])
 
-  // Keyboard shortcut Ctrl+Shift+D
   useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'd') {
-        e.preventDefault()
+    const shortcuts = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        window.dispatchEvent(new CustomEvent('mdict-focus-search'))
+      }
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'd') {
+        event.preventDefault()
         toggleDarkMode()
       }
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    window.addEventListener('keydown', shortcuts)
+    return () => window.removeEventListener('keydown', shortcuts)
   }, [toggleDarkMode])
 
-  // Handle entry:// clicks from dict iframes
-  useEffect(() => {
-    function handleEntryClick(e: Event) {
-      const word = (e as CustomEvent).detail?.word
-      if (word) setSearchWord(word)
-    }
-    window.addEventListener('dict-entry-click', handleEntryClick)
-    return () => window.removeEventListener('dict-entry-click', handleEntryClick)
-  }, [setSearchWord])
-
   return (
-    <div className="flex min-h-screen">
-      <DictSidebar />
-
-      <main className="flex-1 min-w-0 bg-slate-50 dark:bg-slate-950 transition-colors">
-        {/* Header */}
-        <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-slate-800 transition-colors">
-          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
-            <button
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 dark:text-slate-200 transition-colors"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu size={20} />
+    <div className="app-shell">
+      <SourceLedger
+        sources={sources}
+        lookup={lookupQuery.data}
+        loading={sourcesQuery.isLoading || lookupQuery.isLoading}
+        returnFocusRef={menuButtonRef}
+      />
+      <div className="workspace-column">
+        <header className="topbar">
+          <button ref={menuButtonRef} className="icon-button mobile-menu" aria-label="Open source navigation" onClick={() => setSidebarOpen(true)}>
+            <Menu size={19} />
+          </button>
+          <SearchBar />
+          <nav className="topbar-actions" aria-label="Workspace actions">
+            <button className="topbar-text-button" aria-label="Open saved words" onClick={() => window.dispatchEvent(new CustomEvent('mdict-open-saved'))}>
+              <Bookmark size={15} /> <span>Saved</span>
             </button>
-            
-            <a href="/" className="hidden sm:flex items-center gap-2 mr-2 group">
-              <span className="font-bold text-xl text-slate-800 dark:text-slate-100 tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                Mdict<span className="text-blue-600 dark:text-blue-400">Live</span>
-              </span>
-            </a>
-
-            <SearchBar />
-            <button
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-slate-400 transition-colors"
-              onClick={() => setSettingsOpen(true)}
-            >
-              <Settings size={20} />
+            <button ref={contextButtonRef} className="topbar-text-button" aria-label="Open context" onClick={() => setContextOpen(true)}>
+              <MessageSquareText size={15} /> <span>Context</span>
             </button>
-          </div>
+            <button className="icon-button" aria-label={darkMode ? 'Use light workspace' : 'Use dark workspace'} onClick={toggleDarkMode}>
+              {darkMode ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
+            <button ref={settingsButtonRef} className="icon-button" aria-label="Open settings" onClick={() => setSettingsOpen(true)}>
+              <Settings size={17} />
+            </button>
+          </nav>
         </header>
-
-        <div className="max-w-4xl mx-auto px-4 py-4 min-h-[calc(100vh-140px)]">
-          {searchWord && <WordMeta word={searchWord} />}
-          <ResultsArea />
-        </div>
-
-        <footer className="py-6 text-center text-sm text-gray-400 dark:text-slate-600 border-t border-gray-100 dark:border-slate-800/50 mt-auto">
-          <p>
-            Powered by <a href="https://mjshao.fun/mdict-live" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors">MdictLive</a> • 
-            A project by <a href="https://mjshao.fun" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors">Mingjian Shao</a>
-          </p>
-        </footer>
-      </main>
-
-      <SettingsPanel />
+        <main className="workspace-main">
+          <ReadingWorkspace
+            query={searchWord}
+            sources={sources}
+            lookup={lookupQuery.data}
+            loading={sourcesQuery.isLoading || lookupQuery.isLoading}
+            error={(sourcesQuery.error ?? lookupQuery.error) as Error | null}
+            onRefresh={() => {
+              void sourcesQuery.refetch()
+              void lookupQuery.refetch()
+            }}
+          />
+        </main>
+      </div>
+      <ContextDrawer lookup={lookupQuery.data} returnFocusRef={contextButtonRef} />
+      <SettingsPanel sources={sources} returnFocusRef={settingsButtonRef} />
     </div>
   )
 }

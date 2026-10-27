@@ -1,0 +1,58 @@
+{
+  "api_version": "2.0",
+  "request_id": "req_lookup_001",
+  "data": {
+    "query": " right ",
+    "normalized_query": "right",
+    "representations": ["html", "text"],
+    "entries": [
+      {
+        "source_id": "src_fixture_primary",
+        "revision": "rev_fixture_0001",
+        "entry_id": "ent_right_0001",
+        "headword": "right",
+        "record_ordinal": 0,
+        "citation": {
+          "uri": "mdict://src_fixture_primary/rev_fixture_0001/rep-v1/ent_right_0001",
+          "token": "eyJmaXh0dXJlIjoiZW50cnkifQ_sig0001"
+        },
+        "html": "<article><h1>right</h1><p>Correct as a fact.</p></article>",
+        "text_blocks": [
+          {
+            "block_id": "blk_right_0001",
+            "order": 0,
+            "text": "Correct as a fact.",
+            "citation": {
+              "uri": "mdict://src_fixture_primary/rev_fixture_0001/rep-v1/ent_right_0001#blk_right_0001",
+              "token": "eyJmaXh0dXJlIjoiYmxvY2sifQ_sig0001"
+            }
+          }
+        ]
+      }
+    ],
+    "partial": true,
+    "truncated": false,
+    "truncation": null,
+    "progress": {
+      "selected_source_ids": ["src_fixture_primary", "src_fixture_secondary"],
+      "completed_source_ids": ["src_fixture_primary"],
+      "failed_sources": [
+        {
+          "source_id": "src_fixture_secondary",
+          "code": "source_timeout",
+          "message": "The source did not complete within its configured bound."
+        }
+      ],
+      "omitted_source_ids": []
+    },
+    "bounds": {
+      "source_limit": 32,
+      "entry_limit": 10,
+      "text_response_bytes": 65536,
+      "text_entry_bytes": 24576,
+      "html_response_bytes": 4194304
+    },
+    "elapsed_ms": 18.4,
+    "history_recorded": false
+  }
+}

@@ -6,3 +6,4 @@ WTForms-Components
 translators
 python-lzo
 cachetools
+beautifulsoup4>=4.12,<5

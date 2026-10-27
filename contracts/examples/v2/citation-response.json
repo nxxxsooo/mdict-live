@@ -1,0 +1,27 @@
+{
+  "api_version": "2.0",
+  "request_id": "req_citation_001",
+  "data": {
+    "citation": {
+      "uri": "mdict://src_fixture_primary/rev_fixture_0001/rep-v1/ent_right_0001#blk_right_0001",
+      "token": "eyJmaXh0dXJlIjoiYmxvY2sifQ_sig0001"
+    },
+    "source": {
+      "source_id": "src_fixture_primary",
+      "revision": "rev_fixture_0001",
+      "title": "Synthetic Fixture Dictionary"
+    },
+    "entry_id": "ent_right_0001",
+    "headword": "right",
+    "representation_version": "rep-v1",
+    "text_block": {
+      "block_id": "blk_right_0001",
+      "order": 0,
+      "text": "Correct as a fact.",
+      "citation": {
+        "uri": "mdict://src_fixture_primary/rev_fixture_0001/rep-v1/ent_right_0001#blk_right_0001",
+        "token": "eyJmaXh0dXJlIjoiYmxvY2sifQ_sig0001"
+      }
+    }
+  }
+}

@@ -1,100 +1,49 @@
 # MdictLive
 
-> A modern web reader for MDict dictionaries with React 19 SPA, dark mode, and faithful dictionary rendering.
->
-> 基于 React 19 的现代 MDict 词典 Web 阅读器，支持暗色模式和忠实词典渲染。
+Private, self-hosted MDict reading workspace and evidence service with a React
+client, bearer-protected v2 API, standalone CLI, and read-only Pi tools.
 
-> **📦 Formerly `flask-mdict`.** Both `tardivo/mdict-live` and `tardivo/flask-mdict` receive identical updates.
->
-> **📦 原名 `flask-mdict`。** `tardivo/mdict-live` 和 `tardivo/flask-mdict` 两个仓库同步更新。
+> v2 must stay on localhost, a trusted LAN/VPN, or behind a private authenticated
+> reverse proxy. Legacy compatibility routes remain unauthenticated during the
+> transition, so direct public-Internet exposure is unsupported.
 
-[GitHub Repository](https://github.com/nxxxsooo/mdict-live) | [Landing Page](https://mjshao.fun/mdict-live) | [Author](https://mjshao.fun)
+## Container contract
 
-## Features / 功能
+| Path | Access | Purpose |
+|---|---|---|
+| `/library` | read-only | `.mdx`/`.mdd` corpus |
+| `/data` | read/write | database and migration state |
+| `/data/index` | read/write | generated indexes |
+| `/config` | read/write | non-secret configuration |
+| `/run/secrets/mdict_live_token` | read-only | token file, minimum 32 random bytes |
 
-- **React 19 SPA**: Fast, responsive, and modern interface. / 快速、响应式的现代界面。
-- **Dark Mode / 暗色模式**: Built-in dark theme (`Ctrl+Shift+D`). / 内置暗色主题。
-- **Sidebar / 侧边栏**: Manage dictionaries and navigate easily. / 管理词典，便捷导航。
-- **Wordbook / 生词本**: Save words to your favorites. / 收藏生词，随时复习。
-- **Word Frequency / 词频**: COCA/BNC ranking integration. / 集成 COCA/BNC 词频数据。
-- **Faithful Rendering / 忠实渲染**: Sandboxed iframe preserves original dictionary CSS/JS. / 沙箱 iframe 保留词典原始排版。
-- **LZO Support**: Native support for LZO-compressed `.mdx` files. / 原生支持 LZO 压缩词典。
-- **Multi-Arch / 多架构**: `linux/amd64` and `linux/arm64`. / 支持 AMD64 和 ARM64 (Apple Silicon)。
+The image runs as a non-root user under Gunicorn and includes a readiness health
+check at `/health/ready`. On Linux, make the writable directories and directly
+bind-mounted token readable by UID/GID `1000:1000`; mode `0400` with that owner
+is recommended for the token.
 
-## Quick Start / 快速开始
-
-**Bash (Mac/Linux)**
 ```bash
 docker run -d \
   --name mdict-live \
-  -p 5248:5248 \
-  -v $(pwd)/library:/app/content \
+  --read-only \
+  --tmpfs /tmp:rw,noexec,nosuid,size=64m \
+  -p 127.0.0.1:5248:5248 \
+  -v "$PWD/library:/library:ro" \
+  -v "$PWD/data:/data" \
+  -v "$PWD/index:/data/index" \
+  -v "$PWD/config:/config" \
+  -v "$PWD/secrets/mdict-live-token:/run/secrets/mdict_live_token:ro" \
   tardivo/mdict-live:latest
 ```
 
-**PowerShell (Windows)**
-```powershell
-docker run -d `
-  --name mdict-live `
-  -p 5248:5248 `
-  -v ${PWD}/library:/app/content `
-  tardivo/mdict-live:latest
-```
+Open `http://127.0.0.1:5248/app/`. Optional Valkey/Redis caching is enabled with
+`REDIS_URL=redis://host:6379/0`.
 
-## Docker Compose
+For Compose, Unraid, Nginx Proxy Manager, Tailscale, ZeroTier, prefix hosting,
+token rotation, and v1 volume migration, use the repository documentation:
 
-```yaml
-version: '3.8'
-services:
-  mdict-live:
-    image: tardivo/mdict-live:latest
-    container_name: mdict-live
-    restart: unless-stopped
-    ports:
-      - "5248:5248"
-    volumes:
-      - ./library:/app/content
-      - ./config:/config
-```
+- [Deployment guide](https://github.com/nxxxsooo/mdict-live/blob/main/docs/deployment.md)
+- [Migration guide](https://github.com/nxxxsooo/mdict-live/blob/main/docs/migration.md)
+- [Unraid template](https://github.com/nxxxsooo/mdict-live/blob/main/mdict-live.xml)
 
-## Volumes / 卷挂载
-
-| Path / 路径 | Description / 说明 |
-|---|---|
-| `/app/content` | **Required / 必需**. Place `.mdx` and `.mdd` files here. / 放置词典文件。 |
-| `/config` | Optional / 可选. Persistent config and database. / 持久化配置和数据库。 |
-
-## Caching / 缓存
-
-MdictLive caches dictionary lookups in memory (LRU, zero config). For heavy usage, optionally connect Valkey/Redis.
-
-MdictLive 默认使用内存 LRU 缓存词典查询（零配置）。重度使用可选配 Valkey/Redis。
-
-| Env Var / 环境变量 | Default / 默认值 | Description / 说明 |
-|---|---|---|
-| `CACHE_SIZE` | `4096` | Max entries in the in-memory LRU cache. / 内存 LRU 缓存最大条目数。 |
-| `REDIS_URL` | _(empty)_ | Optional. Valkey/Redis URL to enable external cache. / 可选，设置后启用外部缓存。 |
-
-**With Valkey:**
-
-```yaml
-services:
-  mdict-live:
-    image: tardivo/mdict-live:latest
-    ports:
-      - "5248:5248"
-    volumes:
-      - ./library:/app/content
-    environment:
-      - REDIS_URL=redis://valkey:6379/0
-
-  valkey:
-    image: valkey/valkey:8-alpine
-    command: valkey-server --maxmemory 200mb --maxmemory-policy allkeys-lru --save ""
-```
-
-## Unraid
-
-Use the XML template `mdict-live.xml` from the [GitHub repository](https://github.com/nxxxsooo/mdict-live/blob/main/mdict-live.xml). Place it in `/boot/config/plugins/dockerman/templates-user/` and import via Docker tab.
-
-使用 [GitHub 仓库](https://github.com/nxxxsooo/mdict-live/blob/main/mdict-live.xml) 中的 XML 模板，放入 `/boot/config/plugins/dockerman/templates-user/` 后在 Docker 标签页导入。
+Images target `linux/amd64` and `linux/arm64`.

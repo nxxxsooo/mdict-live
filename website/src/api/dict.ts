@@ -1,3 +1,5 @@
+import { servicePath } from './basePath'
+
 // API types
 export interface DictInfo {
   uuid: string
@@ -56,10 +58,8 @@ export interface WordbookEntry {
 }
 
 // API fetch helpers
-const BASE = ''
-
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${url}`, init)
+  const res = await fetch(servicePath(url), init)
   if (!res.ok) throw new Error(`API error: ${res.status}`)
   return res.json()
 }
